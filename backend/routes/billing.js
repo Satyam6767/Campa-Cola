@@ -6,20 +6,27 @@ const router = express.Router();
 
 
 // ===============================
-// CREATE BILL (OFFLINE) + UPDATE STOCK
+// CREATE BILL (OFFLINE) + UPDATE STOCK + CUSTOMER ADDRESS
 // ===============================
 router.post("/create", auth("admin"), async (req, res) => {
   try {
     const {
       customerName,
       customerMobile,
+      customerAddress, // ✅ NEW
       items,
       totalAmount,
       paymentMode
     } = req.body;
 
     // 🔴 VALIDATION
-    if (!customerName || !customerMobile || !items || items.length === 0) {
+    if (
+      !customerName ||
+      !customerMobile ||
+      !customerAddress || // ✅ REQUIRED
+      !items ||
+      items.length === 0
+    ) {
       return res.status(400).json({ error: "Invalid billing data" });
     }
 
@@ -48,6 +55,7 @@ router.post("/create", auth("admin"), async (req, res) => {
     const newBill = new Bill({
       customerName,
       customerMobile,
+      customerAddress, // ✅ SAVE ADDRESS
       items,
       totalAmount,
       paymentMode,

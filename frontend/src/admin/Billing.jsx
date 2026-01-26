@@ -25,6 +25,8 @@ const Billing = () => {
 
   const [customerName, setCustomerName] = useState("");
   const [customerMobile, setCustomerMobile] = useState("");
+  const [customerAddress, setCustomerAddress] = useState(""); // ✅ NEW
+
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -50,6 +52,10 @@ const Billing = () => {
     const product = products.find((p) => p._id === selectedProduct);
     if (!product) return;
 
+    if (quantity > product.stock) {
+      return toast.error("Quantity exceeds available stock");
+    }
+
     const newItem = {
       productId: product._id,
       name: product.title,
@@ -68,19 +74,35 @@ const Billing = () => {
   );
 
   const handleSubmitBill = async () => {
-    if (!customerName || !customerMobile || items.length === 0)
+    if (
+      !customerName ||
+      !customerMobile ||
+      !customerAddress ||
+      items.length === 0
+    ) {
       return toast.error("Please fill customer details & add items!");
+    }
 
     try {
       await API.post(
         "/billing/create",
-        { customerName, customerMobile, items, totalAmount, paymentMode: "Cash" },
+        {
+          customerName,
+          customerMobile,
+          customerAddress, // ✅ SEND ADDRESS
+          items,
+          totalAmount,
+          paymentMode: "Cash",
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       toast.success("Bill Created Successfully!");
+
+      // ✅ RESET FORM
       setCustomerName("");
       setCustomerMobile("");
+      setCustomerAddress("");
       setItems([]);
 
     } catch (err) {
@@ -134,6 +156,20 @@ const Billing = () => {
           InputProps={{ sx: { fontSize: "13px" } }}
           InputLabelProps={{ sx: { fontSize: "13px" } }}
         />
+
+        {/* ✅ NEW ADDRESS FIELD */}
+        <TextField
+          label="Customer Address"
+          size="small"
+          fullWidth
+          multiline
+          rows={2}
+          sx={{ mt: 1 }}
+          value={customerAddress}
+          onChange={(e) => setCustomerAddress(e.target.value)}
+          InputProps={{ sx: { fontSize: "13px" } }}
+          InputLabelProps={{ sx: { fontSize: "13px" } }}
+        />
       </Paper>
 
       {/* Add Items Box */}
@@ -152,8 +188,8 @@ const Billing = () => {
         >
           <MenuItem value="">Select Product</MenuItem>
           {products.map((p) => (
-            <MenuItem key={p._id} value={p._id}>
-              {p.title} - ₹{p.price}
+            <MenuItem key={p._id} value={p._id} disabled={p.stock === 0}>
+              {p.title} - ₹{p.price} (Stock: {p.stock})
             </MenuItem>
           ))}
         </Select>
