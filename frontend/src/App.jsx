@@ -11,7 +11,7 @@ import Register from "./pages/Register";
 import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
 import ProductDetails from "./pages/ProductDetails";
-// import Checkout from "./pages/CheckOut";
+import Checkout from "./pages/CheckOut";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
 
@@ -48,7 +48,7 @@ const App = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/product/:id" element={<ProductDetails />} />
-        {/* <Route path="/checkout" element={<Checkout />} /> */}
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/about" element={<Aboutus />} />
