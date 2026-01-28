@@ -12,7 +12,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Grid,
+  Divider,
 } from "@mui/material";
 import API from "../api/api";
 import { toast } from "react-toastify";
@@ -55,8 +55,8 @@ const Billing = () => {
     if (quantity > product.stock)
       return toast.error("Quantity exceeds available stock");
 
-    setItems([
-      ...items,
+    setItems((prev) => [
+      ...prev,
       {
         productId: product._id,
         name: product.title,
@@ -103,123 +103,102 @@ const Billing = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 1, md: 2 } }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          gap: 1,
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Typography fontWeight="bold">Offline Billing</Typography>
+    <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
+      {/* HEADER */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Typography fontWeight="bold" fontSize={18}>
+          Offline Billing
+        </Typography>
 
         <Button
           size="small"
-          variant="contained"
+          variant="outlined"
           onClick={() => navigate("/admin/billing-history")}
         >
-          Old Bills
+          All Bills
         </Button>
       </Box>
 
-      {/* Customer Details */}
+      {/* CUSTOMER DETAILS */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography fontWeight="bold" mb={1}>
           Customer Details
         </Typography>
 
-        <Grid container spacing={1}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Customer Name"
-              size="small"
-              fullWidth
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-            />
-          </Grid>
+        <TextField
+          label="Customer Name"
+          size="small"
+          fullWidth
+          sx={{ mb: 1 }}
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+        />
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Mobile"
-              size="small"
-              fullWidth
-              value={customerMobile}
-              onChange={(e) => setCustomerMobile(e.target.value)}
-            />
-          </Grid>
+        <TextField
+          label="Mobile"
+          size="small"
+          fullWidth
+          sx={{ mb: 1 }}
+          value={customerMobile}
+          onChange={(e) => setCustomerMobile(e.target.value)}
+        />
 
-          <Grid item xs={12}>
-            <TextField
-              label="Customer Address"
-              size="small"
-              fullWidth
-              multiline
-              rows={2}
-              value={customerAddress}
-              onChange={(e) => setCustomerAddress(e.target.value)}
-            />
-          </Grid>
-        </Grid>
+        <TextField
+          label="Customer Address"
+          size="small"
+          fullWidth
+          multiline
+          rows={2}
+          value={customerAddress}
+          onChange={(e) => setCustomerAddress(e.target.value)}
+        />
       </Paper>
 
-      {/* Add Items */}
+      {/* ADD ITEMS */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography fontWeight="bold" mb={1}>
-          Add Items
+          Add Item
         </Typography>
 
-        <Grid container spacing={1}>
-          <Grid item xs={12} sm={6}>
-            <Select
-              fullWidth
-              size="small"
-              value={selectedProduct}
-              onChange={(e) => setSelectedProduct(e.target.value)}
-              displayEmpty
-            >
-              <MenuItem value="">Select Product</MenuItem>
-              {products.map((p) => (
-                <MenuItem key={p._id} value={p._id} disabled={p.stock === 0}>
-                  {p.title} - ₹{p.price}
-                </MenuItem>
-              ))}
-            </Select>
-          </Grid>
+        <Select
+          fullWidth
+          size="small"
+          sx={{ mb: 1 }}
+          value={selectedProduct}
+          onChange={(e) => setSelectedProduct(e.target.value)}
+          displayEmpty
+        >
+          <MenuItem value="">Select Product</MenuItem>
+          {products.map((p) => (
+            <MenuItem key={p._id} value={p._id} disabled={p.stock === 0}>
+              {p.title} – ₹{p.price} (Stock: {p.stock})
+            </MenuItem>
+          ))}
+        </Select>
 
-          <Grid item xs={12} sm={3}>
-            <TextField
-              label="Qty"
-              type="number"
-              size="small"
-              fullWidth
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
-          </Grid>
+        <TextField
+          label="Quantity"
+          type="number"
+          size="small"
+          fullWidth
+          sx={{ mb: 1 }}
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+        />
 
-          <Grid item xs={12} sm={3}>
-            <Button
-              fullWidth
-              variant="contained"
-              size="small"
-              onClick={handleAddItem}
-            >
-              Add
-            </Button>
-          </Grid>
-        </Grid>
+        <Button fullWidth variant="contained" onClick={handleAddItem}>
+          Add to Bill
+        </Button>
       </Paper>
 
-      {/* Bill Items */}
+      {/* BILL ITEMS */}
       {items.length > 0 && (
-        <Paper sx={{ p: 2, overflowX: "auto" }}>
+        <Paper sx={{ p: 2 }}>
           <Typography fontWeight="bold" mb={1}>
             Bill Items
           </Typography>
+
+          <Divider sx={{ mb: 1 }} />
 
           <Table size="small">
             <TableHead>
