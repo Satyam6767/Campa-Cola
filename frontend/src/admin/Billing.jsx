@@ -203,7 +203,7 @@ const Billing = () => {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Item</TableCell>
+                <TableCell>Itemmmm</TableCell>
                 <TableCell>Qty</TableCell>
                 <TableCell>Price</TableCell>
                 <TableCell>Total</TableCell>
