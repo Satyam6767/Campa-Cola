@@ -9,12 +9,17 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 const drawerWidth = 250;
 
 const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const toggleDrawer = () => {
+    setMobileOpen((prev) => !prev);
+  };
 
   const drawer = (
     <Box sx={{ width: drawerWidth, p: 2 }}>
@@ -45,7 +50,7 @@ const AdminLayout = () => {
 
   return (
     <Box sx={{ display: "flex" }}>
-      {/* MOBILE ADMIN DRAWER */}
+      {/* MOBILE DRAWER */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -59,7 +64,7 @@ const AdminLayout = () => {
         {drawer}
       </Drawer>
 
-      {/* DESKTOP ADMIN SIDEBAR */}
+      {/* DESKTOP SIDEBAR */}
       <Drawer
         variant="permanent"
         open
@@ -74,12 +79,18 @@ const AdminLayout = () => {
         {drawer}
       </Drawer>
 
-      {/* ADMIN CONTENT */}
+      {/* CONTENT */}
       <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
-        {/* ✅ ADMIN SIDEBAR BUTTON (MOBILE ONLY, LEFT SIDE) */}
+        {/* ✅ CHANGED ICON BUTTON */}
         <Box sx={{ display: { xs: "block", md: "none" }, mb: 1 }}>
-          <IconButton onClick={() => setMobileOpen(true)}>
-            <MenuIcon />
+          <IconButton
+            onClick={toggleDrawer}
+            sx={{
+              border: "1px solid #ddd",
+              borderRadius: 1,
+            }}
+          >
+            {mobileOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </Box>
 
