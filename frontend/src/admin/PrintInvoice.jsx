@@ -9,6 +9,7 @@ import {
   TableRow,
   Button,
   Paper,
+  Divider,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import API from "../api/api";
@@ -96,6 +97,10 @@ const PrintInvoice = () => {
 
   if (!bill) return <p>Loading...</p>;
 
+  const paidAmount = bill.paidAmount || 0;
+  const pendingAmount =
+    bill.pendingAmount ?? bill.totalAmount;
+
   return (
     <Box sx={{ p: 4, width: "210mm", margin: "auto", backgroundColor: "#fff" }}>
       {/* PRINT STYLES */}
@@ -169,13 +174,9 @@ const PrintInvoice = () => {
           </Box>
         </Box>
 
-        {/* LINE */}
-        <Box
-          className="print-line"
-          sx={{ width: "100%", height: "2px", backgroundColor: "#000", mt: 2, mb: 2 }}
-        />
+        <Box className="print-line" sx={{ mt: 2, mb: 2 }} />
 
-        {/* CUSTOMER + DATE TIME */}
+        {/* CUSTOMER + DATE */}
         <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
           <Box>
             <Typography><b>Customer:</b> {bill.customerName}</Typography>
@@ -184,7 +185,7 @@ const PrintInvoice = () => {
           </Box>
 
           <Box>
-            <Typography><b>Invoice No:</b> 1</Typography>
+            <Typography><b>Invoice No:</b> {bill._id.slice(-6)}</Typography>
             <Typography>
               <b>Date:</b>{" "}
               {new Date(bill.createdAt).toLocaleDateString("en-IN")}
@@ -201,27 +202,21 @@ const PrintInvoice = () => {
           </Box>
         </Box>
 
-        {/* ITEMS TABLE */}
+        {/* ITEMS */}
         <Paper sx={{ mt: 3 }}>
           <Table>
-            <TableHead
-              className="table-header"
-              sx={{
-                backgroundColor: "#2c2ebf",
-                "& th": { fontWeight: "bold", color: "#fff" },
-              }}
-            >
+            <TableHead className="table-header">
               <TableRow>
-                <TableCell>Item Description</TableCell>
+                <TableCell>Item</TableCell>
                 <TableCell>Qty</TableCell>
-                <TableCell>Unit Price (₹)</TableCell>
+                <TableCell>Rate (₹)</TableCell>
                 <TableCell>Amount (₹)</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
-              {bill.items.map((item, index) => (
-                <TableRow key={index}>
+              {bill.items.map((item, i) => (
+                <TableRow key={i}>
                   <TableCell>{item.productId?.title}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>{item.price}</TableCell>
@@ -232,11 +227,24 @@ const PrintInvoice = () => {
           </Table>
         </Paper>
 
-        {/* TOTAL */}
+        {/* TOTAL + PAYMENT */}
         <Box sx={{ mt: 2, textAlign: "right" }}>
           <Typography fontSize={18}>
             <b>Total Amount: ₹{bill.totalAmount}</b>
           </Typography>
+
+          <Divider sx={{ my: 1 }} />
+
+          <Typography>
+            <b>Payment Status:</b> {bill.paymentStatus}
+          </Typography>
+          <Typography>
+            <b>Paid Amount:</b> ₹{paidAmount}
+          </Typography>
+          <Typography>
+            <b>Pending Amount:</b> ₹{pendingAmount}
+          </Typography>
+
           <Typography sx={{ mt: 1 }}>
             <b>Amount in Words:</b>{" "}
             {numberToWords(bill.totalAmount)} Rupees Only

@@ -13,6 +13,10 @@ import {
   TableCell,
   TableBody,
   Divider,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
 } from "@mui/material";
 import API from "../api/api";
 import { toast } from "react-toastify";
@@ -34,8 +38,9 @@ const Billing = () => {
 
   const [billDateTime, setBillDateTime] = useState("");
 
-  // 🔹 Payment states
-  const [paymentStatus, setPaymentStatus] = useState("Paid");
+  // 🔹 PAYMENT STATES
+  const [paymentStatus, setPaymentStatus] = useState("Paid"); // Paid | Unpaid
+  const [paidType, setPaidType] = useState("full"); // full | partial
   const [paidAmount, setPaidAmount] = useState(0);
 
   const navigate = useNavigate();
@@ -108,18 +113,22 @@ const Billing = () => {
     0
   );
 
-  // 🔹 Pending amount
-  const pendingAmount =
+  // 🔹 Paid & Pending calculation
+  const finalPaidAmount =
     paymentStatus === "Paid"
-      ? totalAmount - paidAmount
-      : totalAmount;
+      ? paidType === "full"
+        ? totalAmount
+        : paidAmount
+      : 0;
+
+  const pendingAmount = totalAmount - finalPaidAmount;
 
   // 🔹 Submit bill
   const handleSubmitBill = async () => {
     if (!customerName || !customerMobile || !customerAddress || !items.length)
       return toast.error("Fill customer details & add items");
 
-    if (paymentStatus === "Paid" && paidAmount > totalAmount)
+    if (finalPaidAmount > totalAmount)
       return toast.error("Paid amount cannot exceed total");
 
     try {
@@ -132,7 +141,7 @@ const Billing = () => {
           items,
           totalAmount,
           paymentStatus,
-          paidAmount: paymentStatus === "Paid" ? paidAmount : 0,
+          paidAmount: finalPaidAmount,
           pendingAmount,
           paymentMode: "Cash",
           billDateTime,
@@ -148,6 +157,7 @@ const Billing = () => {
       setItems([]);
       setPaidAmount(0);
       setPaymentStatus("Paid");
+      setPaidType("full");
     } catch {
       toast.error("Failed to create bill");
     }
@@ -246,9 +256,6 @@ const Billing = () => {
       {items.length > 0 && (
         <Paper sx={{ p: 2 }}>
           <Typography fontWeight="bold">Bill Items</Typography>
-          <Typography fontSize={13} color="text.secondary">
-            Bill Date & Time: {billDateTime}
-          </Typography>
 
           <Divider sx={{ my: 1 }} />
 
@@ -285,7 +292,7 @@ const Billing = () => {
             </TableBody>
           </Table>
 
-          {/* PAYMENT */}
+          {/* PAYMENT SECTION */}
           <Divider sx={{ my: 2 }} />
 
           <Select
@@ -300,22 +307,44 @@ const Billing = () => {
           </Select>
 
           {paymentStatus === "Paid" && (
-            <TextField
-              label="Paid Amount"
-              type="number"
-              size="small"
-              fullWidth
-              sx={{ mb: 1 }}
-              value={paidAmount}
-              onChange={(e) => setPaidAmount(Number(e.target.value))}
-            />
+            <>
+              <FormLabel>Payment Type</FormLabel>
+              <RadioGroup
+                row
+                value={paidType}
+                onChange={(e) => setPaidType(e.target.value)}
+              >
+                <FormControlLabel
+                  value="full"
+                  control={<Radio />}
+                  label="Full Payment"
+                />
+                <FormControlLabel
+                  value="partial"
+                  control={<Radio />}
+                  label="Partial / Pending"
+                />
+              </RadioGroup>
+
+              {paidType === "partial" && (
+                <TextField
+                  label="Paid Amount"
+                  type="number"
+                  size="small"
+                  fullWidth
+                  sx={{ mt: 1 }}
+                  value={paidAmount}
+                  onChange={(e) => setPaidAmount(Number(e.target.value))}
+                />
+              )}
+            </>
           )}
 
-          <Typography fontWeight="bold">
+          <Typography fontWeight="bold" mt={1}>
             Total: ₹{totalAmount}
           </Typography>
           <Typography color="green">
-            Paid: ₹{paymentStatus === "Paid" ? paidAmount : 0}
+            Paid: ₹{finalPaidAmount}
           </Typography>
           <Typography color="red">
             Pending: ₹{pendingAmount}
