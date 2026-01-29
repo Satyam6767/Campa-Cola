@@ -81,7 +81,7 @@ const PrintInvoice = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBill(data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load invoice!");
     }
   };
@@ -98,12 +98,20 @@ const PrintInvoice = () => {
 
   return (
     <Box sx={{ p: 4, width: "210mm", margin: "auto", backgroundColor: "#fff" }}>
-
       {/* PRINT STYLES */}
       <style>
         {`
           @media print {
-            nav, aside, header, footer, .MuiDrawer-root, .MuiAppBar-root, .no-print {
+            nav,
+            aside,
+            header,
+            footer,
+            .MuiDrawer-root,
+            .MuiAppBar-root,
+            .MuiToolbar-root,
+            .MuiIconButton-root,
+            .MuiButtonBase-root,
+            .no-print {
               display: none !important;
             }
 
@@ -136,7 +144,6 @@ const PrintInvoice = () => {
       </style>
 
       <Box className="invoice-container">
-
         <Typography variant="h5" align="center" fontWeight="bold">
           Tax Invoice
         </Typography>
@@ -168,21 +175,28 @@ const PrintInvoice = () => {
           sx={{ width: "100%", height: "2px", backgroundColor: "#000", mt: 2, mb: 2 }}
         />
 
-        {/* CUSTOMER INFO */}
+        {/* CUSTOMER + DATE TIME */}
         <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
           <Box>
-            <Typography><b>Customer:</b> {bill.customerName || "N/A"}</Typography>
-            <Typography><b>Mobile:</b> {bill.customerMobile || "N/A"}</Typography>
-            <Typography><b>Address:</b> {bill.customerAddress || "N/A"}</Typography>
+            <Typography><b>Customer:</b> {bill.customerName}</Typography>
+            <Typography><b>Mobile:</b> {bill.customerMobile}</Typography>
+            <Typography><b>Address:</b> {bill.customerAddress}</Typography>
           </Box>
 
           <Box>
             <Typography><b>Invoice No:</b> 1</Typography>
             <Typography>
               <b>Date:</b>{" "}
-              {bill.createdAt
-                ? new Date(bill.createdAt).toLocaleDateString()
-                : ""}
+              {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+            </Typography>
+            <Typography>
+              <b>Time:</b>{" "}
+              {new Date(bill.createdAt).toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+              })}
             </Typography>
           </Box>
         </Box>
@@ -190,15 +204,11 @@ const PrintInvoice = () => {
         {/* ITEMS TABLE */}
         <Paper sx={{ mt: 3 }}>
           <Table>
-
             <TableHead
               className="table-header"
               sx={{
                 backgroundColor: "#2c2ebf",
-                "& th": {
-                  fontWeight: "bold",
-                  color: "#fff",
-                },
+                "& th": { fontWeight: "bold", color: "#fff" },
               }}
             >
               <TableRow>
@@ -210,32 +220,26 @@ const PrintInvoice = () => {
             </TableHead>
 
             <TableBody>
-              {bill.items
-                ?.filter(item => item && item.productId)
-                .map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.productId?.title || "N/A"}</TableCell>
-                    <TableCell>{item.quantity ?? 0}</TableCell>
-                    <TableCell>{item.price ?? 0}</TableCell>
-                    <TableCell>
-                      {(item.price ?? 0) * (item.quantity ?? 0)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {bill.items.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{item.productId?.title}</TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>{item.price}</TableCell>
+                  <TableCell>{item.price * item.quantity}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
-
           </Table>
         </Paper>
 
-        {/* TOTAL + WORDS */}
+        {/* TOTAL */}
         <Box sx={{ mt: 2, textAlign: "right" }}>
           <Typography fontSize={18}>
-            <b>Total Amount: ₹{bill.totalAmount ?? 0}</b>
+            <b>Total Amount: ₹{bill.totalAmount}</b>
           </Typography>
-
           <Typography sx={{ mt: 1 }}>
             <b>Amount in Words:</b>{" "}
-            {numberToWords(bill.totalAmount ?? 0)} Rupees Only
+            {numberToWords(bill.totalAmount)} Rupees Only
           </Typography>
         </Box>
 
@@ -250,7 +254,6 @@ const PrintInvoice = () => {
             Print Invoice
           </Button>
         </Box>
-
       </Box>
     </Box>
   );

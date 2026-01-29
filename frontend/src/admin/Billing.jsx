@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 const Billing = () => {
   const { token } = useContext(AuthContext);
+
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([]);
 
@@ -31,8 +32,15 @@ const Billing = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  const [billDateTime, setBillDateTime] = useState("");
+
+  // 🔹 Payment states
+  const [paymentStatus, setPaymentStatus] = useState("Paid");
+  const [paidAmount, setPaidAmount] = useState(0);
+
   const navigate = useNavigate();
 
+  // 🔹 Fetch Products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -45,6 +53,22 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
+  // 🔹 Set Bill Date & Time
+  useEffect(() => {
+    const now = new Date();
+    const formattedDateTime = now.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+    setBillDateTime(formattedDateTime);
+  }, []);
+
+  // 🔹 Add item
   const handleAddItem = () => {
     if (!selectedProduct || quantity <= 0)
       return toast.error("Invalid product or quantity");
@@ -69,14 +93,34 @@ const Billing = () => {
     setQuantity(1);
   };
 
+  // 🔹 Editable price
+  const handlePriceChange = (index, newPrice) => {
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, price: Number(newPrice) } : item
+      )
+    );
+  };
+
+  // 🔹 Total
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
+  // 🔹 Pending amount
+  const pendingAmount =
+    paymentStatus === "Paid"
+      ? totalAmount - paidAmount
+      : totalAmount;
+
+  // 🔹 Submit bill
   const handleSubmitBill = async () => {
     if (!customerName || !customerMobile || !customerAddress || !items.length)
       return toast.error("Fill customer details & add items");
+
+    if (paymentStatus === "Paid" && paidAmount > totalAmount)
+      return toast.error("Paid amount cannot exceed total");
 
     try {
       await API.post(
@@ -87,16 +131,23 @@ const Billing = () => {
           customerAddress,
           items,
           totalAmount,
+          paymentStatus,
+          paidAmount: paymentStatus === "Paid" ? paidAmount : 0,
+          pendingAmount,
           paymentMode: "Cash",
+          billDateTime,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       toast.success("Bill Created Successfully!");
+
       setCustomerName("");
       setCustomerMobile("");
       setCustomerAddress("");
       setItems([]);
+      setPaidAmount(0);
+      setPaymentStatus("Paid");
     } catch {
       toast.error("Failed to create bill");
     }
@@ -191,39 +242,83 @@ const Billing = () => {
         </Button>
       </Paper>
 
-      {/* BILL ITEMS */}
+      {/* BILL */}
       {items.length > 0 && (
         <Paper sx={{ p: 2 }}>
-          <Typography fontWeight="bold" mb={1}>
-            Bill Items
+          <Typography fontWeight="bold">Bill Items</Typography>
+          <Typography fontSize={13} color="text.secondary">
+            Bill Date & Time: {billDateTime}
           </Typography>
 
-          <Divider sx={{ mb: 1 }} />
+          <Divider sx={{ my: 1 }} />
 
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Itemmmm</TableCell>
+                <TableCell>Item</TableCell>
                 <TableCell>Qty</TableCell>
                 <TableCell>Price</TableCell>
                 <TableCell>Total</TableCell>
               </TableRow>
             </TableHead>
-
             <TableBody>
               {items.map((item, i) => (
                 <TableRow key={i}>
                   <TableCell>{item.name}</TableCell>
                   <TableCell>{item.quantity}</TableCell>
-                  <TableCell>₹{item.price}</TableCell>
-                  <TableCell>₹{item.price * item.quantity}</TableCell>
+                  <TableCell>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.price}
+                      onChange={(e) =>
+                        handlePriceChange(i, e.target.value)
+                      }
+                      sx={{ width: 80 }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    ₹{item.price * item.quantity}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          <Typography fontWeight="bold" mt={2}>
-            Final Total: ₹{totalAmount}
+          {/* PAYMENT */}
+          <Divider sx={{ my: 2 }} />
+
+          <Select
+            fullWidth
+            size="small"
+            value={paymentStatus}
+            onChange={(e) => setPaymentStatus(e.target.value)}
+            sx={{ mb: 1 }}
+          >
+            <MenuItem value="Paid">Paid</MenuItem>
+            <MenuItem value="Unpaid">Unpaid</MenuItem>
+          </Select>
+
+          {paymentStatus === "Paid" && (
+            <TextField
+              label="Paid Amount"
+              type="number"
+              size="small"
+              fullWidth
+              sx={{ mb: 1 }}
+              value={paidAmount}
+              onChange={(e) => setPaidAmount(Number(e.target.value))}
+            />
+          )}
+
+          <Typography fontWeight="bold">
+            Total: ₹{totalAmount}
+          </Typography>
+          <Typography color="green">
+            Paid: ₹{paymentStatus === "Paid" ? paidAmount : 0}
+          </Typography>
+          <Typography color="red">
+            Pending: ₹{pendingAmount}
           </Typography>
 
           <Button
