@@ -98,8 +98,7 @@ const PrintInvoice = () => {
   if (!bill) return <p>Loading...</p>;
 
   const paidAmount = bill.paidAmount || 0;
-  const pendingAmount =
-    bill.pendingAmount ?? bill.totalAmount;
+  const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
   return (
     <Box sx={{ p: 4, width: "210mm", margin: "auto", backgroundColor: "#fff" }}>
@@ -185,11 +184,17 @@ const PrintInvoice = () => {
           </Box>
 
           <Box>
-            <Typography><b>Invoice No:</b> {bill._id.slice(-6)}</Typography>
+            {/* ✅ FIXED INVOICE NUMBER */}
+            <Typography>
+              <b>Invoice No:</b>{" "}
+              {bill.invoiceNumber ?? "N/A"}
+            </Typography>
+
             <Typography>
               <b>Date:</b>{" "}
               {new Date(bill.createdAt).toLocaleDateString("en-IN")}
             </Typography>
+
             <Typography>
               <b>Time:</b>{" "}
               {new Date(bill.createdAt).toLocaleTimeString("en-IN", {

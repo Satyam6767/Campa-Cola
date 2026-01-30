@@ -63,6 +63,11 @@ const billSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    invoiceNumber: {
+      type: Number,
+      unique: true,
+    },
+
 
     paymentMode: {
       type: String,

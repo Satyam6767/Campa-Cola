@@ -2,6 +2,7 @@ const express = require("express");
 const auth = require("../middleware/auth");
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
+const Counter = require("../models/Counter"); // ✅ NEW
 
 const router = express.Router();
 
@@ -43,9 +44,7 @@ router.post("/create", auth("admin"), async (req, res) => {
       const product = await Product.findById(item.productId);
 
       if (!product) {
-        return res
-          .status(404)
-          .json({ error: "Product not found" });
+        return res.status(404).json({ error: "Product not found" });
       }
 
       if (product.stock < item.quantity) {
@@ -54,19 +53,24 @@ router.post("/create", auth("admin"), async (req, res) => {
         });
       }
 
-      // ✅ DEDUCT STOCK
       product.stock -= item.quantity;
       await product.save();
     }
 
     // 🔴 2️⃣ PAYMENT CALCULATION
-    const finalPaid =
-      paymentStatus === "Paid" ? paidAmount : 0;
-
+    const finalPaid = paymentStatus === "Paid" ? paidAmount : 0;
     const pendingAmount = totalAmount - finalPaid;
 
-    // 🔴 3️⃣ CREATE BILL
+    // 🔴 3️⃣ AUTO INCREMENT INVOICE NUMBER
+    const counter = await Counter.findOneAndUpdate(
+      { name: "invoice" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    // 🔴 4️⃣ CREATE BILL
     const newBill = new Bill({
+      invoiceNumber: counter.seq, // ✅ 1,2,3,4...
       customerName,
       customerMobile,
       customerAddress,
