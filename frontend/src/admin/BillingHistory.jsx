@@ -10,14 +10,21 @@ import {
   TableBody,
   IconButton,
   TablePagination,
-  TextField
+  TextField,
+  Select,
+  MenuItem,
+  Tooltip,
 } from "@mui/material";
 import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+
 import DeleteIcon from "@mui/icons-material/Delete";
 import PrintIcon from "@mui/icons-material/Print";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 
 const BillingHistory = () => {
   const { token } = useContext(AuthContext);
@@ -26,22 +33,35 @@ const BillingHistory = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
+  // Filters
+  const [dateFilter, setDateFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+
   const rowsPerPage = 10;
   const navigate = useNavigate();
 
-  // Fetch Bills
+  // 🔹 Fetch bills (newest first)
   const fetchBills = async () => {
     try {
       const { data } = await API.get("/billing/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBills(data.reverse());
-    } catch (err) {
+
+      const sorted = data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setBills(sorted);
+    } catch {
       toast.error("Failed to fetch bills");
     }
   };
 
-  // Delete Bill
+  useEffect(() => {
+    fetchBills();
+  }, []);
+
+  // 🔹 Delete bill
   const deleteBill = async (id) => {
     if (!window.confirm("Delete this bill?")) return;
     try {
@@ -50,81 +70,142 @@ const BillingHistory = () => {
       });
       toast.success("Bill Deleted!");
       fetchBills();
-    } catch (err) {
+    } catch {
       toast.error("Delete failed");
     }
   };
 
-  // Pagination
-  const handleChangePage = (event, newPage) => {
+  // 🔹 Pagination
+  const handleChangePage = (_, newPage) => {
     setPage(newPage);
   };
 
-  // Search
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setPage(0); // reset page on search
-  };
+  // 🔹 Payment status icon logic
+  const renderPaymentIcon = (bill) => {
+    if (bill.pendingAmount === 0) {
+      return (
+        <Tooltip title="Fully Paid">
+          <CheckCircleIcon sx={{ color: "green", fontSize: 18 }} />
+        </Tooltip>
+      );
+    }
 
-  useEffect(() => {
-    fetchBills();
-  }, []);
-
-  // ✅ SAFE FILTER (NO CRASH)
-  const filteredBills = bills.filter((bill) => {
-    const name = bill.customerName || "";
-    const mobile = bill.customerMobile || "";
+    if (bill.paidAmount === 0) {
+      return (
+        <Tooltip title="Unpaid">
+          <CancelIcon sx={{ color: "red", fontSize: 18 }} />
+        </Tooltip>
+      );
+    }
 
     return (
-      name.toLowerCase().includes(search.toLowerCase()) ||
-      mobile.includes(search)
+      <Tooltip
+        title={`Partial Payment | Paid: ₹${bill.paidAmount}, Pending: ₹${bill.pendingAmount}`}
+      >
+        <HourglassBottomIcon sx={{ color: "#f9a825", fontSize: 18 }} />
+      </Tooltip>
     );
+  };
+
+  // 🔹 Filtering logic
+  const filteredBills = bills.filter((bill) => {
+    const name = bill.customerName?.toLowerCase() || "";
+    const mobile = bill.customerMobile || "";
+    const createdAt = new Date(bill.createdAt);
+    const now = new Date();
+
+    // Search
+    const searchMatch =
+      name.includes(search.toLowerCase()) ||
+      mobile.includes(search);
+
+    // Payment filter
+    let paymentMatch = true;
+    if (paymentFilter === "Paid") paymentMatch = bill.pendingAmount === 0;
+    if (paymentFilter === "Unpaid") paymentMatch = bill.paidAmount === 0;
+    if (paymentFilter === "Partial")
+      paymentMatch = bill.paidAmount > 0 && bill.pendingAmount > 0;
+
+    // Date filter
+    let dateMatch = true;
+    if (dateFilter === "today") {
+      dateMatch = createdAt.toDateString() === now.toDateString();
+    }
+    if (dateFilter === "7days") {
+      dateMatch = (now - createdAt) / 86400000 <= 7;
+    }
+    if (dateFilter === "30days") {
+      dateMatch = (now - createdAt) / 86400000 <= 30;
+    }
+
+    return searchMatch && paymentMatch && dateMatch;
   });
 
   return (
     <Box sx={{ p: 1 }}>
-
-      {/* Header + Search */}
+      {/* HEADER + FILTERS */}
       <Box
         sx={{
           display: "flex",
+          flexWrap: "wrap",
+          gap: 1,
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2
+          mb: 2,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: "18px" }}>
+        <Typography variant="h6" fontWeight="bold">
           Billing History
         </Typography>
 
-        <TextField
-          size="small"
-          placeholder="Search name or mobile"
-          value={search}
-          onChange={handleSearch}
-        />
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Select
+            size="small"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Dates</MenuItem>
+            <MenuItem value="today">Today</MenuItem>
+            <MenuItem value="7days">Last 7 Days</MenuItem>
+            <MenuItem value="30days">Last 30 Days</MenuItem>
+          </Select>
+
+          <Select
+            size="small"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Payments</MenuItem>
+            <MenuItem value="Paid">Paid</MenuItem>
+            <MenuItem value="Unpaid">Unpaid</MenuItem>
+            <MenuItem value="Partial">Partial</MenuItem>
+          </Select>
+
+          <TextField
+            size="small"
+            placeholder="Search name or mobile"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
+          />
+        </Box>
       </Box>
 
-      {/* Table */}
-      <Paper elevation={1} sx={{ p: 1.5, borderRadius: "8px" }}>
+      {/* TABLE */}
+      <Paper sx={{ p: 1.5, borderRadius: "8px" }}>
         <Table size="small">
           <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell sx={{ color: "#fff", fontSize: "13px", fontWeight: "bold" }}>
-                Customer
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontSize: "13px", fontWeight: "bold" }}>
-                Mobile
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontSize: "13px", fontWeight: "bold" }}>
-                Amount
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontSize: "13px", fontWeight: "bold" }}>
-                Date
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontSize: "13px", fontWeight: "bold" }}>
-                Actions
-              </TableCell>
+              {["Customer", "Mobile", "Amount", "Date", "Actions"].map((h) => (
+                <TableCell
+                  key={h}
+                  sx={{ color: "#fff", fontSize: 13, fontWeight: "bold" }}
+                >
+                  {h}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
 
@@ -132,36 +213,38 @@ const BillingHistory = () => {
             {filteredBills
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((bill) => (
-                <TableRow key={bill._id} sx={{ height: "38px" }}>
-                  <TableCell sx={{ fontSize: "13px" }}>
-                    {bill.customerName || "-"}
-                  </TableCell>
-                  <TableCell sx={{ fontSize: "13px" }}>
-                    {bill.customerMobile || "-"}
-                  </TableCell>
-                  <TableCell sx={{ fontSize: "13px" }}>
-                    ₹{bill.totalAmount}
-                  </TableCell>
-                  <TableCell sx={{ fontSize: "13px" }}>
-                    {new Date(bill.createdAt).toLocaleString()}
+                <TableRow key={bill._id}>
+                  <TableCell>{bill.customerName}</TableCell>
+                  <TableCell>{bill.customerMobile}</TableCell>
+                  <TableCell>₹{bill.totalAmount}</TableCell>
+                  <TableCell>
+                    {new Date(bill.createdAt).toLocaleString("en-IN")}
                   </TableCell>
 
-                  {/* Actions */}
+                  {/* ACTIONS */}
                   <TableCell>
-                    <IconButton
-                      size="small"
-                      sx={{ mr: 1 }}
-                      onClick={() => navigate(`/admin/invoice/${bill._id}`)}
-                    >
-                      <PrintIcon sx={{ fontSize: 17 }} />
+                    {/* PAYMENT STATUS ICON */}
+                    <IconButton size="small" disabled>
+                      {renderPaymentIcon(bill)}
                     </IconButton>
 
+                    {/* PRINT */}
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        navigate(`/admin/invoice/${bill._id}`)
+                      }
+                    >
+                      <PrintIcon fontSize="small" />
+                    </IconButton>
+
+                    {/* DELETE */}
                     <IconButton
                       size="small"
                       color="error"
                       onClick={() => deleteBill(bill._id)}
                     >
-                      <DeleteIcon sx={{ fontSize: 17 }} />
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -169,7 +252,6 @@ const BillingHistory = () => {
           </TableBody>
         </Table>
 
-        {/* Pagination */}
         <TablePagination
           component="div"
           count={filteredBills.length}
