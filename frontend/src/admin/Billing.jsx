@@ -36,11 +36,9 @@ const Billing = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  const [billDateTime, setBillDateTime] = useState("");
-
   // 🔹 PAYMENT STATES
-  const [paymentStatus, setPaymentStatus] = useState("Paid"); // Paid | Unpaid
-  const [paidType, setPaidType] = useState("full"); // full | partial
+  const [paymentStatus, setPaymentStatus] = useState("Paid");
+  const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
 
   const navigate = useNavigate();
@@ -56,21 +54,6 @@ const Billing = () => {
       }
     };
     fetchProducts();
-  }, []);
-
-  // 🔹 Set Bill Date & Time
-  useEffect(() => {
-    const now = new Date();
-    const formattedDateTime = now.toLocaleString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    });
-    setBillDateTime(formattedDateTime);
   }, []);
 
   // 🔹 Add item
@@ -102,7 +85,22 @@ const Billing = () => {
   const handlePriceChange = (index, newPrice) => {
     setItems((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, price: Number(newPrice) } : item
+        i === index
+          ? { ...item, price: Number(newPrice) }
+          : item
+      )
+    );
+  };
+
+  // 🔹 Editable quantity ✅ NEW
+  const handleQuantityChange = (index, newQty) => {
+    if (newQty <= 0) return;
+
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, quantity: Number(newQty) }
+          : item
       )
     );
   };
@@ -113,7 +111,7 @@ const Billing = () => {
     0
   );
 
-  // 🔹 Paid & Pending calculation
+  // 🔹 Paid & Pending
   const finalPaidAmount =
     paymentStatus === "Paid"
       ? paidType === "full"
@@ -144,7 +142,6 @@ const Billing = () => {
           paidAmount: finalPaidAmount,
           pendingAmount,
           paymentMode: "Cash",
-          billDateTime,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -268,11 +265,26 @@ const Billing = () => {
                 <TableCell>Total</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
               {items.map((item, i) => (
                 <TableRow key={i}>
                   <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
+
+                  {/* ✅ Editable Quantity */}
+                  <TableCell>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleQuantityChange(i, e.target.value)
+                      }
+                      sx={{ width: 70 }}
+                    />
+                  </TableCell>
+
+                  {/* ✅ Editable Price */}
                   <TableCell>
                     <TextField
                       size="small"
@@ -284,6 +296,7 @@ const Billing = () => {
                       sx={{ width: 80 }}
                     />
                   </TableCell>
+
                   <TableCell>
                     ₹{item.price * item.quantity}
                   </TableCell>
@@ -292,7 +305,7 @@ const Billing = () => {
             </TableBody>
           </Table>
 
-          {/* PAYMENT SECTION */}
+          {/* PAYMENT */}
           <Divider sx={{ my: 2 }} />
 
           <Select
@@ -334,7 +347,9 @@ const Billing = () => {
                   fullWidth
                   sx={{ mt: 1 }}
                   value={paidAmount}
-                  onChange={(e) => setPaidAmount(Number(e.target.value))}
+                  onChange={(e) =>
+                    setPaidAmount(Number(e.target.value))
+                  }
                 />
               )}
             </>
