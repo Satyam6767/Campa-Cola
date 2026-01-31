@@ -88,16 +88,18 @@ const PrintInvoice = () => {
   return (
     <Box
       sx={{
-        width: "210mm",     // ✅ A4 width
+        width: "210mm",
+        minHeight: "297mm",
         margin: "0 auto",
         backgroundColor: "#fff",
+        border: "2px solid #000",      // ✅ BILL BORDER
+        boxSizing: "border-box",
       }}
     >
       {/* ================= PRINT STYLES ================= */}
       <style>
         {`
           @media print {
-
             @page {
               size: A4;
               margin: 0;
@@ -166,7 +168,7 @@ const PrintInvoice = () => {
       {/* ================= CUSTOMER ================= */}
       <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
         <Box>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+          <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
             <b>Customer:</b> {bill.customerName}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
@@ -266,7 +268,10 @@ const PrintInvoice = () => {
       </Box>
 
       {/* ================= BUTTONS ================= */}
-      <Box className="no-print" sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+      <Box
+        className="no-print"
+        sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}
+      >
         <Button variant="contained" onClick={() => window.print()}>
           Print Invoice
         </Button>
