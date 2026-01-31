@@ -60,7 +60,6 @@ const numberToWords = (num) => {
   return result.trim();
 };
 
-/* ================= COMPONENT ================= */
 const PrintInvoice = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
@@ -89,10 +88,8 @@ const PrintInvoice = () => {
   return (
     <Box
       sx={{
-        p: 0,
-        m: 0,
-        width: "210mm",
-        minHeight: "297mm",
+        width: "210mm",     // ✅ A4 width
+        margin: "0 auto",
         backgroundColor: "#fff",
       }}
     >
@@ -100,6 +97,16 @@ const PrintInvoice = () => {
       <style>
         {`
           @media print {
+
+            @page {
+              size: A4;
+              margin: 0;
+            }
+
+            body {
+              margin: 0 !important;
+            }
+
             nav, aside, header, footer,
             .MuiDrawer-root,
             .MuiAppBar-root,
@@ -110,10 +117,6 @@ const PrintInvoice = () => {
               display: none !important;
             }
 
-            body {
-              margin: 0 !important;
-            }
-
             .table-header th {
               background-color: #0b3c5d !important;
               color: #ffffff !important;
@@ -122,26 +125,25 @@ const PrintInvoice = () => {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
+
+            table, tr, td, th, .MuiPaper-root {
+              page-break-inside: avoid !important;
+            }
           }
         `}
       </style>
 
       {/* ================= TITLE ================= */}
-      <Typography
-        variant="h5"
-        align="center"
-        sx={{ fontWeight: 900, fontSize: 20, mt: 1 }}
-      >
+      <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
         Tax Invoice
       </Typography>
 
-      {/* ================= COMPANY DETAILS ================= */}
-      <Box sx={{ mt: 2, px: 2, display: "flex", justifyContent: "space-between" }}>
+      {/* ================= COMPANY ================= */}
+      <Box sx={{ px: 2, mt: 2, display: "flex", justifyContent: "space-between" }}>
         <Box>
           <Typography sx={{ fontSize: 22, fontWeight: 900 }}>
             Janki Enterprises
           </Typography>
-
           {[
             "Station Road, Near Pani Tanki",
             "843320",
@@ -149,23 +151,17 @@ const PrintInvoice = () => {
             "Email: Jankienterprises252522@gmail.com",
             "GSTIN: 10FFUPK9289B1Z2",
             "State: 10-Bihar",
-          ].map((text, i) => (
+          ].map((t, i) => (
             <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
-              {text}
+              {t}
             </Typography>
           ))}
         </Box>
 
-        <Box sx={{ textAlign: "right" }}>
-          <img
-            src="/logo-invoice.JPG"
-            alt="Invoice Logo"
-            style={{ width: 140 }}
-          />
-        </Box>
+        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 140 }} />
       </Box>
 
-      <Divider sx={{ my: 2, borderColor: "#000" }} />
+      <Divider sx={{ my: 2 }} />
 
       {/* ================= CUSTOMER ================= */}
       <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
@@ -196,21 +192,12 @@ const PrintInvoice = () => {
         </Box>
       </Box>
 
-      {/* ================= ITEMS TABLE ================= */}
+      {/* ================= TABLE ================= */}
       <Paper sx={{ mt: 3, mx: 2 }}>
         <Table
           sx={{
-            "& th, & td": {
-              borderRight: "1px solid #000",
-              borderBottom: "1px solid #000",
-            },
-            "& td": {
-              fontSize: 15,       // ✅ items font slightly increased
-              fontWeight: 600,
-            },
-            "& th:last-child, & td:last-child": {
-              borderRight: "none",
-            },
+            "& th, & td": { border: "1px solid #000" },
+            "& td": { fontSize: 15, fontWeight: 600 },
           }}
         >
           <TableHead className="table-header">
@@ -224,9 +211,9 @@ const PrintInvoice = () => {
           </TableHead>
 
           <TableBody>
-            {bill.items.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
+            {bill.items.map((item, i) => (
+              <TableRow key={i}>
+                <TableCell>{i + 1}</TableCell>
                 <TableCell>{item.productId?.title}</TableCell>
                 <TableCell align="center">{item.quantity}</TableCell>
                 <TableCell align="right">{item.price}</TableCell>
@@ -239,9 +226,9 @@ const PrintInvoice = () => {
         </Table>
       </Paper>
 
-      {/* ================= TOTAL & PAYMENT ================= */}
+      {/* ================= TOTAL ================= */}
       <Box sx={{ mt: 3, px: 2 }}>
-        <Typography sx={{ fontSize: 20, fontWeight: 900 }} align="right">
+        <Typography align="right" sx={{ fontSize: 20, fontWeight: 900 }}>
           Total Amount: ₹{bill.totalAmount}
         </Typography>
 
@@ -278,14 +265,8 @@ const PrintInvoice = () => {
         </Typography>
       </Box>
 
-      {/* ================= ACTION BUTTONS ================= */}
-      <Box
-        className="no-print"
-        sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}
-      >
-        <Button variant="contained" color="secondary" onClick={() => window.print()}>
-          Save as PDF
-        </Button>
+      {/* ================= BUTTONS ================= */}
+      <Box className="no-print" sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button variant="contained" onClick={() => window.print()}>
           Print Invoice
         </Button>
