@@ -148,11 +148,10 @@ const PrintInvoice = () => {
           </Typography>
           {[
             "Station Road, Near Pani Tanki",
-            "843320",
+            "843320 Bihar",
             "Phone: 8210038214",
             "Email: Jankienterprises252522@gmail.com",
-            "GSTIN: 10FFUPK9289B1Z2",
-            "State: 10-Bihar",
+            "GSTIN: 10FFUPK9289B1Z2"
           ].map((t, i) => (
             <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
               {t}
