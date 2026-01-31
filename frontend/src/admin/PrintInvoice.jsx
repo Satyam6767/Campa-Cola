@@ -34,39 +34,28 @@ const numberToWords = (num) => {
 
   const convertBelowThousand = (n) => {
     let str = "";
-
     if (n >= 100) {
       str += ones[Math.floor(n / 100)] + " Hundred ";
       n %= 100;
     }
-
     if (n >= 20) {
       str += tens[Math.floor(n / 10)] + " ";
       n %= 10;
     }
-
-    if (n > 0) {
-      str += ones[n] + " ";
-    }
-
+    if (n > 0) str += ones[n] + " ";
     return str.trim();
   };
 
   let result = "";
-
   if (num >= 100000) {
     result += convertBelowThousand(Math.floor(num / 100000)) + " Lakh ";
     num %= 100000;
   }
-
   if (num >= 1000) {
     result += convertBelowThousand(Math.floor(num / 1000)) + " Thousand ";
     num %= 1000;
   }
-
-  if (num > 0) {
-    result += convertBelowThousand(num);
-  }
+  if (num > 0) result += convertBelowThousand(num);
 
   return result.trim();
 };
@@ -91,9 +80,7 @@ const PrintInvoice = () => {
     fetchBill();
   }, []);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   if (!bill) return <p>Loading...</p>;
 
@@ -101,15 +88,12 @@ const PrintInvoice = () => {
   const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
   return (
-    <Box sx={{ p: 4, width: "210mm", margin: "auto", backgroundColor: "#fff" }}>
+    <Box sx={{ p: 4, width: "210mm", mx: "auto", backgroundColor: "#fff" }}>
       {/* PRINT STYLES */}
       <style>
         {`
           @media print {
-            nav,
-            aside,
-            header,
-            footer,
+            nav, aside, header, footer,
             .MuiDrawer-root,
             .MuiAppBar-root,
             .MuiToolbar-root,
@@ -119,27 +103,9 @@ const PrintInvoice = () => {
               display: none !important;
             }
 
-            body {
-              background: #fff !important;
-            }
-
-            .invoice-container {
-              width: 100% !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-
             .table-header th {
-              background-color: #2c2ebf !important;
+              background-color: #d32f2f !important;
               color: #fff !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-
-            .print-line {
-              background-color: #000 !important;
-              height: 2px !important;
-              display: block !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
@@ -147,7 +113,7 @@ const PrintInvoice = () => {
         `}
       </style>
 
-      <Box className="invoice-container">
+      <Box>
         <Typography variant="h5" align="center" fontWeight="bold">
           Tax Invoice
         </Typography>
@@ -168,15 +134,15 @@ const PrintInvoice = () => {
             <img
               src="/logo-invoice.JPG"
               alt="Invoice Logo"
-              style={{ width: "140px", objectFit: "contain" }}
+              style={{ width: 140 }}
             />
           </Box>
         </Box>
 
-        <Box className="print-line" sx={{ mt: 2, mb: 2 }} />
+        <Divider sx={{ my: 2, borderColor: "#000" }} />
 
-        {/* CUSTOMER + DATE */}
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
+        {/* CUSTOMER */}
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
             <Typography><b>Customer:</b> {bill.customerName}</Typography>
             <Typography><b>Mobile:</b> {bill.customerMobile}</Typography>
@@ -184,84 +150,81 @@ const PrintInvoice = () => {
           </Box>
 
           <Box>
-            {/* ✅ FIXED INVOICE NUMBER */}
-            <Typography>
-              <b>Invoice No:</b>{" "}
-              {bill.invoiceNumber ?? "N/A"}
-            </Typography>
-
-            <Typography>
-              <b>Date:</b>{" "}
-              {new Date(bill.createdAt).toLocaleDateString("en-IN")}
-            </Typography>
-
-            <Typography>
-              <b>Time:</b>{" "}
-              {new Date(bill.createdAt).toLocaleTimeString("en-IN", {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true,
-              })}
-            </Typography>
+            <Typography><b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}</Typography>
+            <Typography><b>Date:</b> {new Date(bill.createdAt).toLocaleDateString("en-IN")}</Typography>
+            <Typography><b>Time:</b> {new Date(bill.createdAt).toLocaleTimeString("en-IN")}</Typography>
           </Box>
         </Box>
 
-        {/* ITEMS */}
+        {/* ITEMS TABLE */}
         <Paper sx={{ mt: 3 }}>
-          <Table>
-            <TableHead className="table-header">
+          <Table
+            sx={{
+              "& th, & td": {
+                borderRight: "1px solid #000",
+                borderBottom: "1px solid #000",
+              },
+              "& th:last-child, & td:last-child": {
+                borderRight: "none",
+              },
+            }}
+          >
+            <TableHead
+              className="table-header"
+              sx={{
+                "& th": {
+                  fontWeight: 800,
+                  fontSize: "14px",
+                  textTransform: "uppercase",
+                },
+              }}
+            >
               <TableRow>
+                <TableCell>S.No</TableCell>
                 <TableCell>Item</TableCell>
-                <TableCell>Qty</TableCell>
-                <TableCell>Rate (₹)</TableCell>
-                <TableCell>Amount (₹)</TableCell>
+                <TableCell align="center">Qty</TableCell>
+                <TableCell align="right">Rate (₹)</TableCell>
+                <TableCell align="right">Amount (₹)</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
-              {bill.items.map((item, i) => (
-                <TableRow key={i}>
+              {bill.items.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
                   <TableCell>{item.productId?.title}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{item.price}</TableCell>
-                  <TableCell>{item.price * item.quantity}</TableCell>
+                  <TableCell align="center">{item.quantity}</TableCell>
+                  <TableCell align="right">{item.price}</TableCell>
+                  <TableCell align="right">{item.price * item.quantity}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Paper>
 
-        {/* TOTAL + PAYMENT */}
+        {/* TOTAL */}
         <Box sx={{ mt: 2, textAlign: "right" }}>
-          <Typography fontSize={18}>
-            <b>Total Amount: ₹{bill.totalAmount}</b>
+          <Typography fontWeight="bold" fontSize={18}>
+            Total Amount: ₹{bill.totalAmount}
           </Typography>
 
           <Divider sx={{ my: 1 }} />
 
-          <Typography>
-            <b>Payment Status:</b> {bill.paymentStatus}
-          </Typography>
-          <Typography>
-            <b>Paid Amount:</b> ₹{paidAmount}
-          </Typography>
-          <Typography>
-            <b>Pending Amount:</b> ₹{pendingAmount}
-          </Typography>
+          <Typography><b>Payment Status:</b> {bill.paymentStatus}</Typography>
+          <Typography><b>Paid:</b> ₹{paidAmount}</Typography>
+          <Typography><b>Pending:</b> ₹{pendingAmount}</Typography>
 
           <Typography sx={{ mt: 1 }}>
-            <b>Amount in Words:</b>{" "}
-            {numberToWords(bill.totalAmount)} Rupees Only
+            <b>Amount in Words:</b> {numberToWords(bill.totalAmount)} Rupees Only
           </Typography>
         </Box>
 
-        {/* SIGNATURE */}
+        {/* SIGN */}
         <Box sx={{ mt: 5, textAlign: "right" }}>
           <Typography>Authorized Signatory</Typography>
         </Box>
 
-        {/* PRINT BUTTON */}
+        {/* PRINT */}
         <Box className="no-print" sx={{ mt: 4, textAlign: "center" }}>
           <Button variant="contained" onClick={handlePrint}>
             Print Invoice
