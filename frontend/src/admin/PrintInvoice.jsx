@@ -16,7 +16,7 @@ import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-/* ================= NUMBER TO WORDS ================= */
+/* ================= NUMBER TO WORDS (INDIAN) ================= */
 const numberToWords = (num) => {
   if (num === 0) return "Zero";
 
@@ -24,15 +24,15 @@ const numberToWords = (num) => {
     "", "One", "Two", "Three", "Four", "Five",
     "Six", "Seven", "Eight", "Nine", "Ten",
     "Eleven", "Twelve", "Thirteen", "Fourteen",
-    "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+    "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
   ];
 
   const tens = [
     "", "", "Twenty", "Thirty", "Forty",
-    "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
+    "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
   ];
 
-  const belowThousand = (n) => {
+  const convertBelowThousand = (n) => {
     let str = "";
     if (n >= 100) {
       str += ones[Math.floor(n / 100)] + " Hundred ";
@@ -48,149 +48,18 @@ const numberToWords = (num) => {
 
   let result = "";
   if (num >= 100000) {
-    result += belowThousand(Math.floor(num / 100000)) + " Lakh ";
+    result += convertBelowThousand(Math.floor(num / 100000)) + " Lakh ";
     num %= 100000;
   }
   if (num >= 1000) {
-    result += belowThousand(Math.floor(num / 1000)) + " Thousand ";
+    result += convertBelowThousand(Math.floor(num / 1000)) + " Thousand ";
     num %= 1000;
   }
-  if (num > 0) result += belowThousand(num);
+  if (num > 0) result += convertBelowThousand(num);
 
   return result.trim();
 };
 
-/* ================= INVOICE CONTENT ================= */
-const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
-  <>
-    <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
-      TAX INVOICE
-    </Typography>
-
-    {/* COMPANY */}
-    <Box sx={{ px: 2, mt: 2, display: "flex", justifyContent: "space-between" }}>
-      <Box>
-        <Typography sx={{ fontSize: 22, fontWeight: 900 }}>
-          Janki Enterprises
-        </Typography>
-        {[
-          "Station Road, Near Pani Tanki",
-          "843320 Bihar",
-          "Phone: 8210038214",
-          "Email: Jankienterprises252522@gmail.com",
-          "GSTIN: 10FFUPK9289B1Z2",
-        ].map((t, i) => (
-          <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            {t}
-          </Typography>
-        ))}
-      </Box>
-
-      <img src="/logo-invoice.JPG" alt="logo" style={{ width: 130 }} />
-    </Box>
-
-    <Divider sx={{ my: 2 }} />
-
-    {/* CUSTOMER */}
-    <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
-      <Box>
-        <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
-          <b>Customer:</b> {bill.customerName}
-        </Typography>
-        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-          <b>Mobile:</b> {bill.customerMobile}
-        </Typography>
-        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-          <b>Address:</b> {bill.customerAddress}
-        </Typography>
-      </Box>
-
-      <Box>
-        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-          <b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}
-        </Typography>
-        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-          <b>Date:</b>{" "}
-          {new Date(bill.createdAt).toLocaleDateString("en-IN")}
-        </Typography>
-        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-          <b>Time:</b>{" "}
-          {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
-        </Typography>
-      </Box>
-    </Box>
-
-    {/* TABLE */}
-    <Paper sx={{ mt: 3, mx: 2 }}>
-      <Table sx={{ "& th, & td": { border: "1px solid #000" } }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>S.No</TableCell>
-            <TableCell>Item</TableCell>
-            <TableCell align="center">Qty</TableCell>
-            <TableCell align="right">Rate (₹)</TableCell>
-            <TableCell align="right">Amount (₹)</TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {bill.items.map((item, i) => (
-            <TableRow key={i}>
-              <TableCell>{i + 1}</TableCell>
-              <TableCell>{item.productId?.title}</TableCell>
-              <TableCell align="center">{item.quantity}</TableCell>
-              <TableCell align="right">{item.price}</TableCell>
-              <TableCell align="right">
-                {item.price * item.quantity}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Paper>
-
-    {/* TOTAL */}
-    <Box sx={{ mt: 3, px: 2 }}>
-      <Typography align="right" sx={{ fontSize: 18, fontWeight: 900 }}>
-        Total: ₹{bill.totalAmount}
-      </Typography>
-
-      <Divider sx={{ my: 1 }} />
-
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Box>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            Status: {bill.paymentStatus}
-          </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            Paid: ₹{paidAmount}
-          </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            Pending: ₹{pendingAmount}
-          </Typography>
-        </Box>
-
-        <Box sx={{ maxWidth: "55%" }}>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            Amount in Words:
-          </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            {numberToWords(bill.totalAmount)} Rupees Only
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
-
-    {/* SIGN */}
-    <Box sx={{ mt: 8, px: 2, textAlign: "right" }}>
-      <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-        Authorized Signatory
-      </Typography>
-    </Box>
-  </>
-);
-
-/* ================= MAIN ================= */
 const PrintInvoice = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
@@ -203,7 +72,7 @@ const PrintInvoice = () => {
       });
       setBill(data);
     } catch {
-      toast.error("Failed to load invoice");
+      toast.error("Failed to load invoice!");
     }
   };
 
@@ -217,70 +86,196 @@ const PrintInvoice = () => {
   const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
   return (
-    <>
-      {/* PRINT CSS */}
+    <Box
+      sx={{
+        width: "210mm",
+        minHeight: "294mm",
+        margin: "0 auto",
+        backgroundColor: "#fff",
+        // border: "2px solid #000",      
+        boxSizing: "border-box",
+      }}
+    >
+      {/* ================= PRINT STYLES ================= */}
       <style>
         {`
-        @media print {
-          @page { size: A4; margin: 10mm; }
+          @media print {
+            @page {
+              size: A4;
+              margin: 0;
+            }
 
-          body * { visibility: hidden !important; }
+            body {
+              margin: 0 !important;
+            }
 
-          .print-area,
-          .print-area * { visibility: visible !important; }
+            nav, aside, header, footer,
+            .MuiDrawer-root,
+            .MuiAppBar-root,
+            .MuiToolbar-root,
+            .MuiIconButton-root,
+            .MuiButtonBase-root,
+            .no-print {
+              display: none !important;
+            }
 
-          .print-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+            .table-header th {
+              background-color: #0b3c5d !important;
+              color: #ffffff !important;
+              font-weight: 900 !important;
+              font-size: 15px !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            table, tr, td, th, .MuiPaper-root {
+              page-break-inside: avoid !important;
+            }
           }
-
-          .no-print { display: none !important; }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-          }
-
-          th {
-            background: #0b3c5d !important;
-            color: #fff !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-        }
         `}
       </style>
 
-      {/* PRINT AREA */}
-      <Box className="print-area">
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Box sx={{ width: "50%", pageBreakInside: "avoid" }}>
-            <InvoiceContent
-              bill={bill}
-              paidAmount={paidAmount}
-              pendingAmount={pendingAmount}
-            />
+      {/* ================= TITLE ================= */}
+      <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
+        Tax Invoice
+      </Typography>
+
+      {/* ================= COMPANY ================= */}
+      <Box sx={{ px: 2, mt: 2, display: "flex", justifyContent: "space-between" }}>
+        <Box>
+          <Typography sx={{ fontSize: 22, fontWeight: 900 }}>
+            Janki Enterprises
+          </Typography>
+          {[
+            "Station Road, Near Pani Tanki",
+            "843320 Bihar",
+            "Phone: 8210038214",
+            "Email: Jankienterprises252522@gmail.com",
+            "GSTIN: 10FFUPK9289B1Z2"
+          ].map((t, i) => (
+            <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              {t}
+            </Typography>
+          ))}
+        </Box>
+
+        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 140 }} />
+      </Box>
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* ================= CUSTOMER ================= */}
+      <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
+        <Box>
+          <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
+            <b>Customer:</b> {bill.customerName}
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Mobile:</b> {bill.customerMobile}
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Address:</b> {bill.customerAddress}
+          </Typography>
+        </Box>
+
+        <Box>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Date:</b>{" "}
+            {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Time:</b>{" "}
+            {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* ================= TABLE ================= */}
+      <Paper sx={{ mt: 3, mx: 2 }}>
+        <Table
+          sx={{
+            "& th, & td": { border: "1px solid #000" },
+            "& td": { fontSize: 15, fontWeight: 600 },
+          }}
+        >
+          <TableHead className="table-header">
+            <TableRow>
+              <TableCell>S.No</TableCell>
+              <TableCell>Item</TableCell>
+              <TableCell align="center">Qty</TableCell>
+              <TableCell align="right">Rate (₹)</TableCell>
+              <TableCell align="right">Amount (₹)</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {bill.items.map((item, i) => (
+              <TableRow key={i}>
+                <TableCell>{i + 1}</TableCell>
+                <TableCell>{item.productId?.title}</TableCell>
+                <TableCell align="center">{item.quantity}</TableCell>
+                <TableCell align="right">{item.price}</TableCell>
+                <TableCell align="right">
+                  {item.price * item.quantity}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
+
+      {/* ================= TOTAL ================= */}
+      <Box sx={{ mt: 3, px: 2 }}>
+        <Typography align="right" sx={{ fontSize: 20, fontWeight: 900 }}>
+          Total Amount: ₹{bill.totalAmount}
+        </Typography>
+
+        <Divider sx={{ my: 1 }} />
+
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Box>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              Payment Status: {bill.paymentStatus}
+            </Typography>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              Paid: ₹{paidAmount}
+            </Typography>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              Pending: ₹{pendingAmount}
+            </Typography>
           </Box>
 
-          <Box sx={{ width: "50%", pageBreakInside: "avoid" }}>
-            <InvoiceContent
-              bill={bill}
-              paidAmount={paidAmount}
-              pendingAmount={pendingAmount}
-            />
+          <Box sx={{ maxWidth: "55%" }}>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              Amount in Words:
+            </Typography>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              {numberToWords(bill.totalAmount)} Rupees Only
+            </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* BUTTON */}
-      <Box className="no-print" sx={{ mt: 4, textAlign: "center" }}>
+      {/* ================= SIGN ================= */}
+      <Box sx={{ mt: 8, px: 2, textAlign: "right" }}>
+        <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+          Authorized Signatory
+        </Typography>
+      </Box>
+
+      {/* ================= BUTTONS ================= */}
+      <Box
+        className="no-print"
+        sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}
+      >
         <Button variant="contained" onClick={() => window.print()}>
           Print Invoice
         </Button>
       </Box>
-    </>
+    </Box>
   );
 };
 
