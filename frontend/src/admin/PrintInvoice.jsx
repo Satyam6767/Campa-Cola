@@ -89,10 +89,9 @@ const PrintInvoice = () => {
     <Box
       sx={{
         width: "210mm",
-        minHeight: "294mm",
+        minHeight: "297mm",
         margin: "0 auto",
         backgroundColor: "#fff",
-        // border: "2px solid #000",      
         boxSizing: "border-box",
       }}
     >
@@ -102,11 +101,17 @@ const PrintInvoice = () => {
           @media print {
             @page {
               size: A4;
-              margin: 0;
+              margin: 0mm; /* removes header & footer */
+            }
+
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
             }
 
             body {
-              margin: 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
 
             nav, aside, header, footer,
@@ -121,11 +126,9 @@ const PrintInvoice = () => {
 
             .table-header th {
               background-color: #0b3c5d !important;
-              color: #ffffff !important;
+              color: #fff !important;
               font-weight: 900 !important;
               font-size: 15px !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
             }
 
             table, tr, td, th, .MuiPaper-root {
@@ -151,7 +154,7 @@ const PrintInvoice = () => {
             "843320 Bihar",
             "Phone: 8210038214",
             "Email: Jankienterprises252522@gmail.com",
-            "GSTIN: 10FFUPK9289B1Z2"
+            "GSTIN: 10FFUPK9289B1Z2",
           ].map((t, i) => (
             <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
               {t}
@@ -266,10 +269,10 @@ const PrintInvoice = () => {
         </Typography>
       </Box>
 
-      {/* ================= BUTTONS ================= */}
+      {/* ================= BUTTON ================= */}
       <Box
         className="no-print"
-        sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}
+        sx={{ mt: 4, display: "flex", justifyContent: "center" }}
       >
         <Button variant="contained" onClick={() => window.print()}>
           Print Invoice
