@@ -65,7 +65,7 @@ const PrintInvoice = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
   const [bill, setBill] = useState(null);
-  const invoiceRef = useRef();
+  const invoiceRef = useRef(null);
 
   const fetchBill = async () => {
     try {
@@ -82,21 +82,26 @@ const PrintInvoice = () => {
     fetchBill();
   }, []);
 
+  /* ================= SAVE PDF (FIXED) ================= */
   const handleSavePDF = () => {
     const element = invoiceRef.current;
 
     const opt = {
-      margin: 0,
+      margin: [0, 0, 0, 0],
       filename: `Invoice_${bill.invoiceNumber || "Bill"}.pdf`,
       image: { type: "jpeg", quality: 1 },
       html2canvas: {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
+        scrollY: 0,
       },
       jsPDF: {
         unit: "mm",
         format: "a4",
         orientation: "portrait",
+      },
+      pagebreak: {
+        mode: ["avoid-all"],
       },
     };
 
@@ -115,8 +120,8 @@ const PrintInvoice = () => {
         ref={invoiceRef}
         sx={{
           width: "210mm",
-          minHeight: "297mm",
-          margin: "8px",
+          height: "auto",
+          margin: "0 auto",
           backgroundColor: "#fff",
           boxSizing: "border-box",
         }}
