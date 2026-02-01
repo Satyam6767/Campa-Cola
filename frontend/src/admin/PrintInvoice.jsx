@@ -93,6 +93,7 @@ const PrintInvoice = () => {
         margin: "0 auto",
         backgroundColor: "#fff",
         boxSizing: "border-box",
+        border: "1px solid grey"
       }}
     >
       {/* ================= PRINT STYLES ================= */}
@@ -207,7 +208,7 @@ const PrintInvoice = () => {
           <TableHead className="table-header">
             <TableRow>
               <TableCell>S.No</TableCell>
-              <TableCell>Item</TableCell>
+              <TableCell>Itemssss</TableCell>
               <TableCell align="center">Qty</TableCell>
               <TableCell align="right">Rate (₹)</TableCell>
               <TableCell align="right">Amount (₹)</TableCell>
