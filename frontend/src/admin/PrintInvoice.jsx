@@ -16,7 +16,7 @@ import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-/* ================= NUMBER TO WORDS (INDIAN) ================= */
+/* ================= NUMBER TO WORDS ================= */
 const numberToWords = (num) => {
   if (num === 0) return "Zero";
 
@@ -24,15 +24,15 @@ const numberToWords = (num) => {
     "", "One", "Two", "Three", "Four", "Five",
     "Six", "Seven", "Eight", "Nine", "Ten",
     "Eleven", "Twelve", "Thirteen", "Fourteen",
-    "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
+    "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
   ];
 
   const tens = [
     "", "", "Twenty", "Thirty", "Forty",
-    "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
+    "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
   ];
 
-  const convertBelowThousand = (n) => {
+  const belowThousand = (n) => {
     let str = "";
     if (n >= 100) {
       str += ones[Math.floor(n / 100)] + " Hundred ";
@@ -48,24 +48,23 @@ const numberToWords = (num) => {
 
   let result = "";
   if (num >= 100000) {
-    result += convertBelowThousand(Math.floor(num / 100000)) + " Lakh ";
+    result += belowThousand(Math.floor(num / 100000)) + " Lakh ";
     num %= 100000;
   }
   if (num >= 1000) {
-    result += convertBelowThousand(Math.floor(num / 1000)) + " Thousand ";
+    result += belowThousand(Math.floor(num / 1000)) + " Thousand ";
     num %= 1000;
   }
-  if (num > 0) result += convertBelowThousand(num);
+  if (num > 0) result += belowThousand(num);
 
   return result.trim();
 };
 
-/* ================= SINGLE INVOICE CONTENT ================= */
+/* ================= INVOICE CONTENT ================= */
 const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
   <>
-    {/* TITLE */}
     <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
-      Tax Invoice
+      TAX INVOICE
     </Typography>
 
     {/* COMPANY */}
@@ -87,7 +86,7 @@ const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
         ))}
       </Box>
 
-      <img src="/logo-invoice.JPG" alt="logo" style={{ width: 140 }} />
+      <img src="/logo-invoice.JPG" alt="logo" style={{ width: 130 }} />
     </Box>
 
     <Divider sx={{ my: 2 }} />
@@ -95,7 +94,7 @@ const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
     {/* CUSTOMER */}
     <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
       <Box>
-        <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
+        <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
           <b>Customer:</b> {bill.customerName}
         </Typography>
         <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
@@ -123,13 +122,8 @@ const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
 
     {/* TABLE */}
     <Paper sx={{ mt: 3, mx: 2 }}>
-      <Table
-        sx={{
-          "& th, & td": { border: "1px solid #000" },
-          "& td": { fontSize: 15, fontWeight: 600 },
-        }}
-      >
-        <TableHead className="table-header">
+      <Table sx={{ "& th, & td": { border: "1px solid #000" } }}>
+        <TableHead>
           <TableRow>
             <TableCell>S.No</TableCell>
             <TableCell>Item</TableCell>
@@ -157,8 +151,8 @@ const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
 
     {/* TOTAL */}
     <Box sx={{ mt: 3, px: 2 }}>
-      <Typography align="right" sx={{ fontSize: 20, fontWeight: 900 }}>
-        Total Amount: ₹{bill.totalAmount}
+      <Typography align="right" sx={{ fontSize: 18, fontWeight: 900 }}>
+        Total: ₹{bill.totalAmount}
       </Typography>
 
       <Divider sx={{ my: 1 }} />
@@ -166,7 +160,7 @@ const InvoiceContent = ({ bill, paidAmount, pendingAmount }) => (
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Box>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            Payment Status: {bill.paymentStatus}
+            Status: {bill.paymentStatus}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             Paid: ₹{paidAmount}
@@ -209,7 +203,7 @@ const PrintInvoice = () => {
       });
       setBill(data);
     } catch {
-      toast.error("Failed to load invoice!");
+      toast.error("Failed to load invoice");
     }
   };
 
@@ -227,37 +221,42 @@ const PrintInvoice = () => {
       {/* PRINT CSS */}
       <style>
         {`
-          @media print {
-            @page { size: A4 landscape; margin: 0; }
+        @media print {
+          @page { size: A4; margin: 10mm; }
 
-            body * { visibility: hidden !important; }
+          body * { visibility: hidden !important; }
 
-            .print-area,
-            .print-area * { visibility: visible !important; }
+          .print-area,
+          .print-area * { visibility: visible !important; }
 
-            .print-area {
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-            }
-
-            .no-print { display: none !important; }
-
-            .table-header th {
-              background-color: #0b3c5d !important;
-              color: #fff !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+          .print-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
           }
+
+          .no-print { display: none !important; }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+
+          th {
+            background: #0b3c5d !important;
+            color: #fff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
         `}
       </style>
 
       {/* PRINT AREA */}
-      <Box className="print-area" sx={{ width: "297mm", margin: "0 auto" }}>
-        <Box sx={{ display: "flex" }}>
-          <Box sx={{ width: "50%" }}>
+      <Box className="print-area">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Box sx={{ width: "50%", pageBreakInside: "avoid" }}>
             <InvoiceContent
               bill={bill}
               paidAmount={paidAmount}
@@ -265,7 +264,7 @@ const PrintInvoice = () => {
             />
           </Box>
 
-          <Box sx={{ width: "50%" }}>
+          <Box sx={{ width: "50%", pageBreakInside: "avoid" }}>
             <InvoiceContent
               bill={bill}
               paidAmount={paidAmount}
