@@ -92,7 +92,7 @@ const PrintInvoice = () => {
         minHeight: "294mm",
         margin: "0 auto",
         backgroundColor: "#fff",
-        border: "1px solid #000",      // ✅ BILL BORDER
+        // border: "1px solid #000",
         boxSizing: "border-box",
       }}
     >
