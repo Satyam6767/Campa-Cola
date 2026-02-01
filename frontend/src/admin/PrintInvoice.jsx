@@ -70,7 +70,7 @@ const InvoiceLayout = ({ bill }) => {
     <Box
       sx={{
         width: "210mm",
-        minHeight: "297mm",
+        minHeight: "294mm",
         margin: "0 auto",
         backgroundColor: "#fff",
         boxSizing: "border-box",
@@ -121,10 +121,12 @@ const InvoiceLayout = ({ bill }) => {
             <b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Date:</b> {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+            <b>Date:</b>{" "}
+            {new Date(bill.createdAt).toLocaleDateString("en-IN")}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Time:</b> {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
+            <b>Time:</b>{" "}
+            {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
           </Typography>
         </Box>
       </Box>
@@ -147,7 +149,9 @@ const InvoiceLayout = ({ bill }) => {
                 <TableCell>{item.productId?.title}</TableCell>
                 <TableCell align="center">{item.quantity}</TableCell>
                 <TableCell align="right">{item.price}</TableCell>
-                <TableCell align="right">{item.price * item.quantity}</TableCell>
+                <TableCell align="right">
+                  {item.price * item.quantity}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -195,25 +199,48 @@ const PrintInvoice = () => {
     })
       .then(({ data }) => setBill(data))
       .catch(() => toast.error("Failed to load invoice!"));
-  }, []);
+  }, [id, token]);
 
   const handleSavePDF = () => {
-    html2pdf().set({
-      filename: `Invoice_${bill.invoiceNumber}.pdf`,
-      jsPDF: { unit: "mm", format: "a4" },
-      html2canvas: { scale: 1.5 },
-      pagebreak: { mode: ["css"] },
-    }).from(invoiceRef.current).save();
+    html2pdf()
+      .set({
+        filename: `Invoice_${bill.invoiceNumber}.pdf`,
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        html2canvas: { scale: 2, useCORS: true },
+      })
+      .from(invoiceRef.current)
+      .save();
   };
 
   if (!bill) return null;
 
   return (
     <>
+      {/* CSS FIX FOR BLANK PAGE */}
+      <style>
+        {`
+          .invoice-page {
+            page-break-after: always;
+          }
+          .invoice-page:last-child {
+            page-break-after: auto;
+          }
+          @media print {
+            .no-print {
+              display: none;
+            }
+          }
+        `}
+      </style>
+
       <Box ref={invoiceRef}>
-        <InvoiceLayout bill={bill} />
-        <div style={{ pageBreakAfter: "always" }} />
-        <InvoiceLayout bill={bill} />
+        <div className="invoice-page">
+          <InvoiceLayout bill={bill} />
+        </div>
+
+        <div className="invoice-page">
+          <InvoiceLayout bill={bill} />
+        </div>
       </Box>
 
       <Box className="no-print" sx={{ mt: 3, textAlign: "center" }}>
