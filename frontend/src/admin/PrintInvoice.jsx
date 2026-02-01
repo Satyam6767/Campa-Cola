@@ -89,7 +89,7 @@ const PrintInvoice = () => {
     <Box
       sx={{
         width: "210mm",
-        minHeight: "297mm",
+        minHeight: "294mm",
         margin: "0 auto",
         backgroundColor: "#fff",
         boxSizing: "border-box",
