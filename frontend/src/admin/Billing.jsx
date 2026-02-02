@@ -36,7 +36,7 @@ const Billing = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // 🔹 PAYMENT STATES
+  // 🔹 PAYMENT STATES (UNCHANGED)
   const [paymentStatus, setPaymentStatus] = useState("Paid");
   const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
@@ -56,7 +56,7 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
-  // 🔹 Add item
+  // 🔹 Add item (MERGE SAME PRODUCT ✅ UPDATED)
   const handleAddItem = () => {
     if (!selectedProduct || quantity <= 0)
       return toast.error("Invalid product or quantity");
@@ -67,15 +67,31 @@ const Billing = () => {
     if (quantity > product.stock)
       return toast.error("Quantity exceeds available stock");
 
-    setItems((prev) => [
-      ...prev,
-      {
-        productId: product._id,
-        name: product.title,
-        price: product.price,
-        quantity,
-      },
-    ]);
+    setItems((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) => item.productId === product._id
+      );
+
+      // ✅ If already exists → update quantity
+      if (existingIndex !== -1) {
+        return prev.map((item, i) =>
+          i === existingIndex
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+
+      // ✅ Else → add new row
+      return [
+        ...prev,
+        {
+          productId: product._id,
+          name: product.title,
+          price: product.price,
+          quantity,
+        },
+      ];
+    });
 
     setSelectedProduct("");
     setQuantity(1);
@@ -85,24 +101,25 @@ const Billing = () => {
   const handlePriceChange = (index, newPrice) => {
     setItems((prev) =>
       prev.map((item, i) =>
-        i === index
-          ? { ...item, price: Number(newPrice) }
-          : item
+        i === index ? { ...item, price: Number(newPrice) } : item
       )
     );
   };
 
-  // 🔹 Editable quantity ✅ NEW
+  // 🔹 Editable quantity
   const handleQuantityChange = (index, newQty) => {
     if (newQty <= 0) return;
 
     setItems((prev) =>
       prev.map((item, i) =>
-        i === index
-          ? { ...item, quantity: Number(newQty) }
-          : item
+        i === index ? { ...item, quantity: Number(newQty) } : item
       )
     );
+  };
+
+  // 🔹 Delete item
+  const handleDeleteItem = (index) => {
+    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 🔹 Total
@@ -111,7 +128,7 @@ const Billing = () => {
     0
   );
 
-  // 🔹 Paid & Pending
+  // 🔹 Paid & Pending (UNCHANGED)
   const finalPaidAmount =
     paymentStatus === "Paid"
       ? paidType === "full"
@@ -263,6 +280,7 @@ const Billing = () => {
                 <TableCell>Qty</TableCell>
                 <TableCell>Price</TableCell>
                 <TableCell>Total</TableCell>
+                <TableCell align="center">Action</TableCell>
               </TableRow>
             </TableHead>
 
@@ -271,7 +289,6 @@ const Billing = () => {
                 <TableRow key={i}>
                   <TableCell>{item.name}</TableCell>
 
-                  {/* ✅ Editable Quantity */}
                   <TableCell>
                     <TextField
                       size="small"
@@ -284,7 +301,6 @@ const Billing = () => {
                     />
                   </TableCell>
 
-                  {/* ✅ Editable Price */}
                   <TableCell>
                     <TextField
                       size="small"
@@ -300,12 +316,23 @@ const Billing = () => {
                   <TableCell>
                     ₹{item.price * item.quantity}
                   </TableCell>
+
+                  <TableCell align="center">
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      onClick={() => handleDeleteItem(i)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {/* PAYMENT */}
+          {/* PAYMENT SECTION (UNCHANGED) */}
           <Divider sx={{ my: 2 }} />
 
           <Select

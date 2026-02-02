@@ -216,24 +216,42 @@ const PrintInvoice = () => {
 
   return (
     <>
-      {/* CSS FIX FOR BLANK PAGE */}
+      {/* ===== PRINT FIX : HIDE SIDEBAR / NAVBAR ===== */}
       <style>
         {`
-          .invoice-page {
-            page-break-after: always;
-          }
-          .invoice-page:last-child {
-            page-break-after: auto;
-          }
           @media print {
+            body * {
+              visibility: hidden;
+            }
+
+            .print-area,
+            .print-area * {
+              visibility: visible;
+            }
+
+            .print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+
             .no-print {
-              display: none;
+              display: none !important;
+            }
+
+            .invoice-page {
+              page-break-after: always;
+            }
+
+            .invoice-page:last-child {
+              page-break-after: auto;
             }
           }
         `}
       </style>
 
-      <Box ref={invoiceRef}>
+      <Box ref={invoiceRef} className="print-area">
         <div className="invoice-page">
           <InvoiceLayout bill={bill} />
         </div>
@@ -247,7 +265,11 @@ const PrintInvoice = () => {
         <Button variant="outlined" onClick={handleSavePDF}>
           Save as PDF
         </Button>
-        <Button variant="contained" onClick={() => window.print()} sx={{ ml: 2 }}>
+        <Button
+          variant="contained"
+          onClick={() => window.print()}
+          sx={{ ml: 2 }}
+        >
           Print Invoice
         </Button>
       </Box>
