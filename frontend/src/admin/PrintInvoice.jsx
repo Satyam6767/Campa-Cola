@@ -86,34 +86,54 @@ const InvoiceLayout = ({ bill }) => {
           <Typography sx={{ fontSize: 22, fontWeight: 900 }}>
             Janki Enterprises
           </Typography>
-          {[
-            "Station Road, Near Pani Tanki",
-            "843320 Bihar",
-            "Phone: 8210038214",
-            "Email: Jankienterprises252522@gmail.com",
-            "GSTIN: 10FFUPK9289B1Z2",
-          ].map((t, i) => (
-            <Typography key={i} sx={{ fontSize: 14.5, fontWeight: 600 }}>
-              {t}
-            </Typography>
-          ))}
+
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            Station Road, Near Pani Tanki
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            843320 Bihar
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            Phone: 8210038214
+          </Typography>
+
+          <Typography
+            sx={{ fontSize: 14.5, fontWeight: 600 }}
+            className="no-print-link"
+          >
+            Email: Jankienterprises252522@gmail.com
+          </Typography>
+
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            GSTIN: 10FFUPK9289B1Z2
+          </Typography>
         </Box>
+
         <img src="/logo-invoice.JPG" alt="logo" style={{ width: 140 }} />
       </Box>
 
       <Divider sx={{ my: 2 }} />
 
+      {/* ===== CUSTOMER DETAILS (ALL OPTIONAL) ===== */}
       <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
         <Box>
-          <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
-            <b>Customer:</b> {bill.customerName}
-          </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Mobile:</b> {bill.customerMobile}
-          </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Address:</b> {bill.customerAddress}
-          </Typography>
+          {bill.customerName && (
+            <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
+              <b>Customer:</b> {bill.customerName}
+            </Typography>
+          )}
+
+          {bill.customerMobile && (
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              <b>Mobile:</b> {bill.customerMobile}
+            </Typography>
+          )}
+
+          {bill.customerAddress && (
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+              <b>Address:</b> {bill.customerAddress}
+            </Typography>
+          )}
         </Box>
 
         <Box>
@@ -180,13 +200,37 @@ const InvoiceLayout = ({ bill }) => {
         </Box>
       </Box>
 
-      <Box sx={{ mt: 8, px: 2, textAlign: "right" }}>
-        <Typography>Authorized Signatory</Typography>
+      <Box
+        sx={{
+          mt: 8,
+          px: 2,
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box>
+          <Typography sx={{ mb: 4 }}>
+            _______________________
+          </Typography>
+          <Typography sx={{ fontWeight: 600 }}>
+            Receiver Signature
+          </Typography>
+        </Box>
+
+        <Box sx={{ textAlign: "right" }}>
+          <Typography sx={{ mb: 4 }}>
+            _______________________
+          </Typography>
+          <Typography sx={{ fontWeight: 600 }}>
+            Authorized Signatory
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
 };
 
+/* ================= PRINT & PDF ================= */
 const PrintInvoice = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
@@ -216,36 +260,22 @@ const PrintInvoice = () => {
 
   return (
     <>
-      {/* ===== PRINT FIX : HIDE SIDEBAR / NAVBAR ===== */}
       <style>
         {`
           @media print {
-            body * {
-              visibility: hidden;
-            }
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            .invoice-page { page-break-after: always; }
+            .invoice-page:last-child { page-break-after: auto; }
 
-            .print-area,
-            .print-area * {
-              visibility: visible;
-            }
-
-            .print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-
-            .no-print {
-              display: none !important;
-            }
-
-            .invoice-page {
-              page-break-after: always;
-            }
-
-            .invoice-page:last-child {
-              page-break-after: auto;
+            a,
+            a[href^="mailto:"],
+            a[href^="tel:"],
+            .no-print-link {
+              text-decoration: none !important;
+              color: #000 !important;
             }
           }
         `}
@@ -255,7 +285,6 @@ const PrintInvoice = () => {
         <div className="invoice-page">
           <InvoiceLayout bill={bill} />
         </div>
-
         <div className="invoice-page">
           <InvoiceLayout bill={bill} />
         </div>

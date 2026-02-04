@@ -10,7 +10,7 @@ const billSchema = new mongoose.Schema(
 
     customerMobile: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
 
