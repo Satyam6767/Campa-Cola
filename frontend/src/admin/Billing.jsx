@@ -36,14 +36,14 @@ const Billing = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // 🔹 PAYMENT STATES (UNCHANGED)
+  // PAYMENT STATES
   const [paymentStatus, setPaymentStatus] = useState("Paid");
   const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
 
   const navigate = useNavigate();
 
-  // 🔹 Fetch Products
+  // FETCH PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -56,7 +56,7 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
-  // 🔹 Add item (MERGE SAME PRODUCT ✅ UPDATED)
+  // ADD ITEM (MERGE SAME PRODUCT)
   const handleAddItem = () => {
     if (!selectedProduct || quantity <= 0)
       return toast.error("Invalid product or quantity");
@@ -72,7 +72,6 @@ const Billing = () => {
         (item) => item.productId === product._id
       );
 
-      // ✅ If already exists → update quantity
       if (existingIndex !== -1) {
         return prev.map((item, i) =>
           i === existingIndex
@@ -81,7 +80,6 @@ const Billing = () => {
         );
       }
 
-      // ✅ Else → add new row
       return [
         ...prev,
         {
@@ -97,7 +95,7 @@ const Billing = () => {
     setQuantity(1);
   };
 
-  // 🔹 Editable price
+  // EDIT PRICE
   const handlePriceChange = (index, newPrice) => {
     setItems((prev) =>
       prev.map((item, i) =>
@@ -106,7 +104,7 @@ const Billing = () => {
     );
   };
 
-  // 🔹 Editable quantity
+  // EDIT QUANTITY
   const handleQuantityChange = (index, newQty) => {
     if (newQty <= 0) return;
 
@@ -117,18 +115,18 @@ const Billing = () => {
     );
   };
 
-  // 🔹 Delete item
+  // DELETE ITEM
   const handleDeleteItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 🔹 Total
+  // TOTAL
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  // 🔹 Paid & Pending (UNCHANGED)
+  // PAID & PENDING
   const finalPaidAmount =
     paymentStatus === "Paid"
       ? paidType === "full"
@@ -138,10 +136,11 @@ const Billing = () => {
 
   const pendingAmount = totalAmount - finalPaidAmount;
 
-  // 🔹 Submit bill
+  // SUBMIT BILL
   const handleSubmitBill = async () => {
-    if (!customerName || !customerMobile || !customerAddress || !items.length)
-      return toast.error("Fill customer details & add items");
+    // ❗ ONLY ITEMS REQUIRED
+    if (!items.length)
+      return toast.error("Please add at least one item");
 
     if (finalPaidAmount > totalAmount)
       return toast.error("Paid amount cannot exceed total");
@@ -150,9 +149,9 @@ const Billing = () => {
       await API.post(
         "/billing/create",
         {
-          customerName,
-          customerMobile,
-          customerAddress,
+          customerName: customerName || "N/A",
+          customerMobile: customerMobile || "N/A",
+          customerAddress: customerAddress || "N/A",
           items,
           totalAmount,
           paymentStatus,
@@ -194,10 +193,10 @@ const Billing = () => {
         </Button>
       </Box>
 
-      {/* CUSTOMER DETAILS */}
+      {/* CUSTOMER DETAILS (OPTIONAL) */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography fontWeight="bold" mb={1}>
-          Customer Details
+          Customer Details (Optional)
         </Typography>
 
         <TextField
@@ -332,7 +331,7 @@ const Billing = () => {
             </TableBody>
           </Table>
 
-          {/* PAYMENT SECTION (UNCHANGED) */}
+          {/* PAYMENT */}
           <Divider sx={{ my: 2 }} />
 
           <Select
