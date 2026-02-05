@@ -71,9 +71,7 @@ const InvoiceLayout = ({ bill }) => {
     0
   );
 
-  /* 🔥 FONT SIZE LOGIC BASED ON ITEM COUNT */
   const itemCount = bill.items.length;
-
   const tableFontSize =
     itemCount <= 10 ? 14 :
     itemCount <= 15 ? 12 :
@@ -262,15 +260,38 @@ const PrintInvoice = () => {
 
   return (
     <>
+      {/* ✅ ONLY CHANGE IS HERE */}
       <style>
         {`
           @media print {
-            body * { visibility: hidden; }
-            .print-area, .print-area * { visibility: visible; }
-            .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-            .invoice-page { page-break-after: always; }
-            .invoice-page:last-child { page-break-after: auto; }
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+
+            body {
+              margin: 0;
+            }
+
+            body * {
+              visibility: hidden;
+            }
+
+            .print-area,
+            .print-area * {
+              visibility: visible;
+            }
+
+            .print-area {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+            }
+
+            .no-print {
+              display: none !important;
+            }
           }
         `}
       </style>
