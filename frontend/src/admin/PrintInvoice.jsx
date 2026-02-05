@@ -17,6 +17,15 @@ import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import html2pdf from "html2pdf.js";
 
+/* ================= HELPERS ================= */
+const chunkArray = (arr, size) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+};
+
 /* ================= NUMBER TO WORDS (INDIAN) ================= */
 const numberToWords = (num) => {
   if (num === 0) return "Zero";
@@ -61,12 +70,11 @@ const numberToWords = (num) => {
   return result.trim();
 };
 
-/* ================= SINGLE INVOICE COPY ================= */
-const InvoiceLayout = ({ bill }) => {
+/* ================= SINGLE PAGE INVOICE ================= */
+const InvoiceLayout = ({ bill, items, isLastPage }) => {
   const paidAmount = bill.paidAmount || 0;
   const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
-  // ✅ TOTAL QUANTITY CALCULATION
   const totalQuantity = bill.items.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
     0
@@ -92,7 +100,6 @@ const InvoiceLayout = ({ bill }) => {
           <Typography sx={{ fontSize: 22, fontWeight: 900 }}>
             Janki Enterprises
           </Typography>
-
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             Station Road, Near Pani Tanki
           </Typography>
@@ -102,22 +109,19 @@ const InvoiceLayout = ({ bill }) => {
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             Phone: 8210038214
           </Typography>
-
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             Email: Jankienterprises252522@gmail.com
           </Typography>
-
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             GSTIN: 10FFUPK9289B1Z2
           </Typography>
         </Box>
 
-        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 140 }} />
+        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 130 }} />
       </Box>
 
       <Divider sx={{ my: 2 }} />
 
-      {/* ===== CUSTOMER DETAILS (OPTIONAL) ===== */}
       <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
         <Box>
           {bill.customerName && (
@@ -125,13 +129,11 @@ const InvoiceLayout = ({ bill }) => {
               <b>Customer:</b> {bill.customerName}
             </Typography>
           )}
-
           {bill.customerMobile && (
             <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
               <b>Mobile:</b> {bill.customerMobile}
             </Typography>
           )}
-
           {bill.customerAddress && (
             <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
               <b>Address:</b> {bill.customerAddress}
@@ -141,21 +143,25 @@ const InvoiceLayout = ({ bill }) => {
 
         <Box>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}
+            <b>Invoice No:</b> {bill.invoiceNumber}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             <b>Date:</b>{" "}
             {new Date(bill.createdAt).toLocaleDateString("en-IN")}
           </Typography>
-          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Time:</b>{" "}
-            {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
-          </Typography>
         </Box>
       </Box>
 
       <Paper sx={{ mt: 3, mx: 2 }}>
-        <Table sx={{ "& th, & td": { border: "1px solid #000" } }}>
+        <Table
+          sx={{
+            "& th, & td": {
+              border: "1px solid #000",
+              padding: "4px 6px",
+              fontSize: "14px",
+            },
+          }}
+        >
           <TableHead>
             <TableRow>
               <TableCell>S.No</TableCell>
@@ -165,8 +171,9 @@ const InvoiceLayout = ({ bill }) => {
               <TableCell align="right">Amount (₹)</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {bill.items.map((item, i) => (
+            {items.map((item, i) => (
               <TableRow key={i}>
                 <TableCell>{i + 1}</TableCell>
                 <TableCell>{item.productId?.title}</TableCell>
@@ -177,59 +184,60 @@ const InvoiceLayout = ({ bill }) => {
                 </TableCell>
               </TableRow>
             ))}
+
+            {isLastPage && (
+              <TableRow>
+                <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
+                  TOTAL
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: 700 }}>
+                  {totalQuantity}
+                </TableCell>
+                <TableCell />
+                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                  ₹{bill.totalAmount}
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </Paper>
 
-      {/* ===== TOTAL SECTION ===== */}
-      <Box sx={{ mt: 3, px: 2 }}>
-        <Typography align="right" sx={{ fontSize: 16, fontWeight: 700 }}>
-          Total Quantity: {totalQuantity}
-        </Typography>
+      {isLastPage && (
+        <>
+          <Box sx={{ mt: 3, px: 2 }}>
+            <Divider sx={{ my: 1 }} />
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Box>
+                <Typography>Payment Status: {bill.paymentStatus}</Typography>
+                <Typography>Paid: ₹{paidAmount}</Typography>
+                <Typography>Pending: ₹{pendingAmount}</Typography>
+              </Box>
 
-        <Typography align="right" sx={{ fontSize: 20, fontWeight: 900 }}>
-          Total Amount: ₹{bill.totalAmount}
-        </Typography>
-
-        <Divider sx={{ my: 1 }} />
-
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Box>
-            <Typography>Payment Status: {bill.paymentStatus}</Typography>
-            <Typography>Total Quantity: {totalQuantity}</Typography>
-            <Typography>Paid: ₹{paidAmount}</Typography>
-            <Typography>Pending: ₹{pendingAmount}</Typography>
+              <Box sx={{ maxWidth: "55%" }}>
+                <Typography>Amount in Words:</Typography>
+                <Typography>
+                  {numberToWords(bill.totalAmount)} Rupees Only
+                </Typography>
+              </Box>
+            </Box>
           </Box>
 
-          <Box sx={{ maxWidth: "55%" }}>
-            <Typography>Amount in Words:</Typography>
-            <Typography>
-              {numberToWords(bill.totalAmount)} Rupees Only
+          <Box
+            sx={{
+              mt: 8,
+              px: 2,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography sx={{ fontWeight: 600 }}>Receiver Signature</Typography>
+            <Typography sx={{ fontWeight: 600 }}>
+              Authorized Signatory
             </Typography>
           </Box>
-        </Box>
-      </Box>
-
-      <Box
-        sx={{
-          mt: 8,
-          px: 2,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box>
-          <Typography sx={{ mb: 4 }}>_______________________</Typography>
-          <Typography sx={{ fontWeight: 600 }}>Receiver Signature</Typography>
-        </Box>
-
-        <Box sx={{ textAlign: "right" }}>
-          <Typography sx={{ mb: 4 }}>_______________________</Typography>
-          <Typography sx={{ fontWeight: 600 }}>
-            Authorized Signatory
-          </Typography>
-        </Box>
-      </Box>
+        </>
+      )}
     </Box>
   );
 };
@@ -262,6 +270,8 @@ const PrintInvoice = () => {
 
   if (!bill) return null;
 
+  const pages = chunkArray(bill.items, 10);
+
   return (
     <>
       <style>
@@ -278,12 +288,15 @@ const PrintInvoice = () => {
       </style>
 
       <Box ref={invoiceRef} className="print-area">
-        <div className="invoice-page">
-          <InvoiceLayout bill={bill} />
-        </div>
-        <div className="invoice-page">
-          <InvoiceLayout bill={bill} />
-        </div>
+        {pages.map((pageItems, index) => (
+          <div key={index} className="invoice-page">
+            <InvoiceLayout
+              bill={bill}
+              items={pageItems}
+              isLastPage={index === pages.length - 1}
+            />
+          </div>
+        ))}
       </Box>
 
       <Box className="no-print" sx={{ mt: 3, textAlign: "center" }}>
