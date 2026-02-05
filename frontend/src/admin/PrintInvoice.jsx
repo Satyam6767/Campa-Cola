@@ -17,15 +17,6 @@ import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import html2pdf from "html2pdf.js";
 
-/* ================= HELPERS ================= */
-const chunkArray = (arr, size) => {
-  const chunks = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-};
-
 /* ================= NUMBER TO WORDS (INDIAN) ================= */
 const numberToWords = (num) => {
   if (num === 0) return "Zero";
@@ -70,8 +61,8 @@ const numberToWords = (num) => {
   return result.trim();
 };
 
-/* ================= SINGLE PAGE INVOICE ================= */
-const InvoiceLayout = ({ bill, items, isLastPage }) => {
+/* ================= SINGLE INVOICE COPY ================= */
+const InvoiceLayout = ({ bill }) => {
   const paidAmount = bill.paidAmount || 0;
   const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
@@ -79,6 +70,16 @@ const InvoiceLayout = ({ bill, items, isLastPage }) => {
     (sum, item) => sum + Number(item.quantity || 0),
     0
   );
+
+  /* 🔥 FONT SIZE LOGIC BASED ON ITEM COUNT */
+  const itemCount = bill.items.length;
+
+  const tableFontSize =
+    itemCount <= 10 ? 14 :
+    itemCount <= 15 ? 12 :
+    10;
+
+  const tablePadding = itemCount > 10 ? "4px" : "8px";
 
   return (
     <Box
@@ -117,7 +118,7 @@ const InvoiceLayout = ({ bill, items, isLastPage }) => {
           </Typography>
         </Box>
 
-        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 130 }} />
+        <img src="/logo-invoice.JPG" alt="logo" style={{ width: 126 }} />
       </Box>
 
       <Divider sx={{ my: 2 }} />
@@ -143,11 +144,15 @@ const InvoiceLayout = ({ bill, items, isLastPage }) => {
 
         <Box>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-            <b>Invoice No:</b> {bill.invoiceNumber}
+            <b>Invoice No:</b> {bill.invoiceNumber ?? "N/A"}
           </Typography>
           <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             <b>Date:</b>{" "}
             {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+          </Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <b>Time:</b>{" "}
+            {new Date(bill.createdAt).toLocaleTimeString("en-IN")}
           </Typography>
         </Box>
       </Box>
@@ -157,23 +162,23 @@ const InvoiceLayout = ({ bill, items, isLastPage }) => {
           sx={{
             "& th, & td": {
               border: "1px solid #000",
-              padding: "4px 6px",
-              fontSize: "14px",
+              fontSize: `${tableFontSize}px`,
+              padding: tablePadding,
             },
           }}
         >
           <TableHead>
             <TableRow>
-              <TableCell>S.No</TableCell>
-              <TableCell>Item</TableCell>
-              <TableCell align="center">Qty</TableCell>
-              <TableCell align="right">Rate (₹)</TableCell>
-              <TableCell align="right">Amount (₹)</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>S.No</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Item</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>Qty</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>Rate (₹)</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>Amount (₹)</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {items.map((item, i) => (
+            {bill.items.map((item, i) => (
               <TableRow key={i}>
                 <TableCell>{i + 1}</TableCell>
                 <TableCell>{item.productId?.title}</TableCell>
@@ -185,59 +190,44 @@ const InvoiceLayout = ({ bill, items, isLastPage }) => {
               </TableRow>
             ))}
 
-            {isLastPage && (
-              <TableRow>
-                <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
-                  TOTAL
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: 700 }}>
-                  {totalQuantity}
-                </TableCell>
-                <TableCell />
-                <TableCell align="right" sx={{ fontWeight: 700 }}>
-                  ₹{bill.totalAmount}
-                </TableCell>
-              </TableRow>
-            )}
+            <TableRow>
+              <TableCell colSpan={2} sx={{ fontWeight: 700 }}>
+                TOTAL
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                {totalQuantity}
+              </TableCell>
+              <TableCell />
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                ₹{bill.totalAmount}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </Paper>
 
-      {isLastPage && (
-        <>
-          <Box sx={{ mt: 3, px: 2 }}>
-            <Divider sx={{ my: 1 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Box>
-                <Typography>Payment Status: {bill.paymentStatus}</Typography>
-                <Typography>Paid: ₹{paidAmount}</Typography>
-                <Typography>Pending: ₹{pendingAmount}</Typography>
-              </Box>
-
-              <Box sx={{ maxWidth: "55%" }}>
-                <Typography>Amount in Words:</Typography>
-                <Typography>
-                  {numberToWords(bill.totalAmount)} Rupees Only
-                </Typography>
-              </Box>
-            </Box>
+      <Box sx={{ mt: 3, px: 2 }}>
+        <Divider sx={{ my: 1 }} />
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Box>
+            <Typography>Payment Status: {bill.paymentStatus}</Typography>
+            <Typography>Paid: ₹{paidAmount}</Typography>
+            <Typography>Pending: ₹{pendingAmount}</Typography>
           </Box>
 
-          <Box
-            sx={{
-              mt: 8,
-              px: 2,
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography sx={{ fontWeight: 600 }}>Receiver Signature</Typography>
-            <Typography sx={{ fontWeight: 600 }}>
-              Authorized Signatory
+          <Box sx={{ maxWidth: "55%" }}>
+            <Typography>Amount in Words:</Typography>
+            <Typography>
+              {numberToWords(bill.totalAmount)} Rupees Only
             </Typography>
           </Box>
-        </>
-      )}
+        </Box>
+      </Box>
+
+      <Box sx={{ mt: 8, px: 2, display: "flex", justifyContent: "space-between" }}>
+        <Typography sx={{ fontWeight: 600 }}>Receiver Signature</Typography>
+        <Typography sx={{ fontWeight: 600 }}>Authorized Signatory</Typography>
+      </Box>
     </Box>
   );
 };
@@ -270,8 +260,6 @@ const PrintInvoice = () => {
 
   if (!bill) return null;
 
-  const pages = chunkArray(bill.items, 10);
-
   return (
     <>
       <style>
@@ -288,15 +276,12 @@ const PrintInvoice = () => {
       </style>
 
       <Box ref={invoiceRef} className="print-area">
-        {pages.map((pageItems, index) => (
-          <div key={index} className="invoice-page">
-            <InvoiceLayout
-              bill={bill}
-              items={pageItems}
-              isLastPage={index === pages.length - 1}
-            />
-          </div>
-        ))}
+        <div className="invoice-page">
+          <InvoiceLayout bill={bill} />
+        </div>
+        <div className="invoice-page">
+          <InvoiceLayout bill={bill} />
+        </div>
       </Box>
 
       <Box className="no-print" sx={{ mt: 3, textAlign: "center" }}>
