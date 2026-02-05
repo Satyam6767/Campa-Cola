@@ -66,6 +66,12 @@ const InvoiceLayout = ({ bill }) => {
   const paidAmount = bill.paidAmount || 0;
   const pendingAmount = bill.pendingAmount ?? bill.totalAmount;
 
+  // ✅ TOTAL QUANTITY CALCULATION
+  const totalQuantity = bill.items.reduce(
+    (sum, item) => sum + Number(item.quantity || 0),
+    0
+  );
+
   return (
     <Box
       sx={{
@@ -97,10 +103,7 @@ const InvoiceLayout = ({ bill }) => {
             Phone: 8210038214
           </Typography>
 
-          <Typography
-            sx={{ fontSize: 14.5, fontWeight: 600 }}
-            className="no-print-link"
-          >
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
             Email: Jankienterprises252522@gmail.com
           </Typography>
 
@@ -114,7 +117,7 @@ const InvoiceLayout = ({ bill }) => {
 
       <Divider sx={{ my: 2 }} />
 
-      {/* ===== CUSTOMER DETAILS (ALL OPTIONAL) ===== */}
+      {/* ===== CUSTOMER DETAILS (OPTIONAL) ===== */}
       <Box sx={{ px: 2, display: "flex", justifyContent: "space-between" }}>
         <Box>
           {bill.customerName && (
@@ -178,7 +181,12 @@ const InvoiceLayout = ({ bill }) => {
         </Table>
       </Paper>
 
+      {/* ===== TOTAL SECTION ===== */}
       <Box sx={{ mt: 3, px: 2 }}>
+        <Typography align="right" sx={{ fontSize: 16, fontWeight: 700 }}>
+          Total Quantity: {totalQuantity}
+        </Typography>
+
         <Typography align="right" sx={{ fontSize: 20, fontWeight: 900 }}>
           Total Amount: ₹{bill.totalAmount}
         </Typography>
@@ -188,9 +196,11 @@ const InvoiceLayout = ({ bill }) => {
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
             <Typography>Payment Status: {bill.paymentStatus}</Typography>
+            <Typography>Total Quantity: {totalQuantity}</Typography>
             <Typography>Paid: ₹{paidAmount}</Typography>
             <Typography>Pending: ₹{pendingAmount}</Typography>
           </Box>
+
           <Box sx={{ maxWidth: "55%" }}>
             <Typography>Amount in Words:</Typography>
             <Typography>
@@ -209,18 +219,12 @@ const InvoiceLayout = ({ bill }) => {
         }}
       >
         <Box>
-          <Typography sx={{ mb: 4 }}>
-            _______________________
-          </Typography>
-          <Typography sx={{ fontWeight: 600 }}>
-            Receiver Signature
-          </Typography>
+          <Typography sx={{ mb: 4 }}>_______________________</Typography>
+          <Typography sx={{ fontWeight: 600 }}>Receiver Signature</Typography>
         </Box>
 
         <Box sx={{ textAlign: "right" }}>
-          <Typography sx={{ mb: 4 }}>
-            _______________________
-          </Typography>
+          <Typography sx={{ mb: 4 }}>_______________________</Typography>
           <Typography sx={{ fontWeight: 600 }}>
             Authorized Signatory
           </Typography>
@@ -269,14 +273,6 @@ const PrintInvoice = () => {
             .no-print { display: none !important; }
             .invoice-page { page-break-after: always; }
             .invoice-page:last-child { page-break-after: auto; }
-
-            a,
-            a[href^="mailto:"],
-            a[href^="tel:"],
-            .no-print-link {
-              text-decoration: none !important;
-              color: #000 !important;
-            }
           }
         `}
       </style>
