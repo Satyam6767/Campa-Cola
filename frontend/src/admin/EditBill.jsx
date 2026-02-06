@@ -45,6 +45,11 @@ const EditBill = () => {
       });
   }, [id, token, navigate]);
 
+  if (loading) return null;
+
+  // ✅ CORRECT PAID CHECK
+  const isFullyPaid = bill.pendingAmount === 0;
+
   // 🔹 Quantity change
   const updateQty = (index, value) => {
     const updated = [...items];
@@ -66,8 +71,8 @@ const EditBill = () => {
 
   // 🔹 Submit update
   const handleUpdate = async () => {
-    if (bill.paymentStatus === "Paid") {
-      toast.error("Paid bill cannot be edited");
+    if (isFullyPaid) {
+      toast.error("Fully paid bill cannot be edited");
       return;
     }
 
@@ -88,13 +93,11 @@ const EditBill = () => {
       );
 
       toast.success("Bill updated successfully");
-      navigate("/admin/billing");
+      navigate("/admin/billing-history");
     } catch (err) {
       toast.error(err.response?.data?.error || "Update failed");
     }
   };
-
-  if (loading) return null;
 
   return (
     <Box sx={{ p: 2 }}>
@@ -102,8 +105,8 @@ const EditBill = () => {
         Edit Bill (Invoice #{bill.invoiceNumber})
       </Typography>
 
-      {/* 🚫 PAID WARNING */}
-      {bill.paymentStatus === "Paid" && (
+      {/* 🚫 FULLY PAID WARNING */}
+      {isFullyPaid && (
         <Typography color="error" fontWeight="bold" mb={2}>
           This bill is fully paid and cannot be edited.
         </Typography>
@@ -115,7 +118,7 @@ const EditBill = () => {
           <TextField
             label="Customer Name"
             value={bill.customerName}
-            disabled={bill.paymentStatus === "Paid"}
+            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerName: e.target.value })
             }
@@ -124,7 +127,7 @@ const EditBill = () => {
           <TextField
             label="Mobile"
             value={bill.customerMobile}
-            disabled={bill.paymentStatus === "Paid"}
+            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerMobile: e.target.value })
             }
@@ -133,7 +136,7 @@ const EditBill = () => {
           <TextField
             label="Address"
             value={bill.customerAddress}
-            disabled={bill.paymentStatus === "Paid"}
+            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerAddress: e.target.value })
             }
@@ -162,7 +165,7 @@ const EditBill = () => {
                     size="small"
                     type="number"
                     value={item.quantity}
-                    disabled={bill.paymentStatus === "Paid"}
+                    disabled={isFullyPaid}
                     onChange={(e) => updateQty(i, e.target.value)}
                     sx={{ width: 80 }}
                   />
@@ -173,7 +176,7 @@ const EditBill = () => {
                 <TableCell>
                   <IconButton
                     color="error"
-                    disabled={bill.paymentStatus === "Paid"}
+                    disabled={isFullyPaid}
                     onClick={() => removeItem(i)}
                   >
                     <DeleteIcon fontSize="small" />
@@ -192,7 +195,7 @@ const EditBill = () => {
             label="Paid Amount"
             type="number"
             value={paidAmount}
-            disabled={bill.paymentStatus === "Paid"}
+            disabled={isFullyPaid}
             onChange={(e) => setPaidAmount(Number(e.target.value))}
             sx={{ mt: 1 }}
           />
@@ -202,7 +205,7 @@ const EditBill = () => {
         <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
           <Button
             variant="contained"
-            disabled={bill.paymentStatus === "Paid"}
+            disabled={isFullyPaid}
             onClick={handleUpdate}
           >
             Update Bill
@@ -210,7 +213,7 @@ const EditBill = () => {
 
           <Button
             variant="outlined"
-            onClick={() => navigate("/admin/billing")}
+            onClick={() => navigate("/admin/billing-history")}
           >
             Cancel
           </Button>

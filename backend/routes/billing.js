@@ -158,10 +158,12 @@ router.put("/:id", auth("admin"), async (req, res) => {
       return res.status(404).json({ error: "Bill not found" });
     }
 
-    // 🔴 OPTIONAL RULE: BLOCK EDIT IF FULLY PAID
-    // if (bill.paymentStatus === "Paid") {
-    //   return res.status(403).json({ error: "Paid bill cannot be edited" });
-    // }
+    // 🔒 BLOCK EDIT ONLY IF FULLY PAID
+    if (bill.pendingAmount === 0) {
+      return res.status(403).json({
+        error: "Fully paid bill cannot be edited",
+      });
+    }
 
     // 🔴 1️⃣ RESTORE OLD STOCK
     for (let oldItem of bill.items) {

@@ -204,7 +204,7 @@ const BillingHistory = () => {
             {filteredBills
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((bill) => {
-                const isPaid = bill.pendingAmount === 0;
+                const isFullyPaid = bill.pendingAmount === 0;
 
                 return (
                   <TableRow key={bill._id}>
@@ -233,11 +233,11 @@ const BillingHistory = () => {
                         </IconButton>
                       </Tooltip>
 
-                      {/* ✏️ EDIT (DISABLED IF PAID) */}
+                      {/* ✏️ EDIT */}
                       <Tooltip
                         title={
-                          isPaid
-                            ? "Paid bill cannot be edited"
+                          isFullyPaid
+                            ? "Fully paid bill cannot be edited"
                             : "Edit Bill"
                         }
                       >
@@ -245,7 +245,7 @@ const BillingHistory = () => {
                           <IconButton
                             size="small"
                             color="primary"
-                            disabled={isPaid}
+                            disabled={isFullyPaid}
                             onClick={() =>
                               navigate(`/admin/billing/edit/${bill._id}`)
                             }
