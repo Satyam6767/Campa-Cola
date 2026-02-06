@@ -214,8 +214,13 @@ const InvoiceLayout = ({ bill }) => {
           </Box>
 
           <Box sx={{ maxWidth: "55%" }}>
-            <Typography>Amount in Words:</Typography>
-            <Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+              Total Amount: ₹{bill.totalAmount}
+            </Typography>
+            <Typography sx={{ mt: 0.5, fontSize: 14 }}>
+              Amount in Words:
+            </Typography>
+            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
               {numberToWords(bill.totalAmount)} Rupees Only
             </Typography>
           </Box>
@@ -260,7 +265,6 @@ const PrintInvoice = () => {
 
   return (
     <>
-      {/* ✅ ONLY CHANGE IS HERE */}
       <style>
         {`
           @media print {
@@ -287,6 +291,17 @@ const PrintInvoice = () => {
               top: 0;
               left: 0;
               width: 100%;
+            }
+
+            /* ✅ PAGE BREAK FIX */
+            .invoice-page {
+              page-break-after: always;
+              break-after: page;
+            }
+
+            .invoice-page:last-child {
+              page-break-after: auto;
+              break-after: auto;
             }
 
             .no-print {
