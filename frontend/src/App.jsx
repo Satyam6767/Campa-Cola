@@ -14,10 +14,12 @@ import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
+import Contact from "./pages/Contact";
+import Aboutus from "./pages/Aboutus";
 
 // Layout Components
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+// import Footer from "./components/Footer";
 
 // Admin Section
 import AdminLayout from "./admin/AdminLayout";
@@ -29,8 +31,7 @@ import ManageOrders from "./admin/ManageOrders";
 import Billing from "./admin/Billing";
 import BillingHistory from "./admin/BillingHistory";
 import PrintInvoice from "./admin/PrintInvoice";
-import Contact from "./pages/Contact";
-import Aboutus from "./pages/Aboutus";
+import EditBill from "./admin/EditBill"; // ✅ ADD THIS
 
 const App = () => {
   return (
@@ -39,8 +40,7 @@ const App = () => {
       <ToastContainer position="top-right" autoClose={2000} />
 
       <Routes>
-
-        {/* User Routes */}
+        {/* ================= USER ROUTES ================= */}
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/login" element={<Login />} />
@@ -54,8 +54,7 @@ const App = () => {
         <Route path="/about" element={<Aboutus />} />
         <Route path="/contact" element={<Contact />} />
 
-
-        {/* Admin Protected Routes */}
+        {/* ================= ADMIN ROUTES ================= */}
         <Route
           path="/admin"
           element={
@@ -70,12 +69,13 @@ const App = () => {
           <Route path="orders" element={<ManageOrders />} />
           <Route path="billing" element={<Billing />} />
           <Route path="billing-history" element={<BillingHistory />} />
+
+          {/* ✅ PRINT INVOICE */}
           <Route path="invoice/:id" element={<PrintInvoice />} />
 
-
-
+          {/* ✅ EDIT BILL (FIX FOR YOUR ERROR) */}
+          <Route path="billing/edit/:id" element={<EditBill />} />
         </Route>
-
       </Routes>
 
       {/* <Footer /> */}

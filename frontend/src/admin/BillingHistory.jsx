@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 
 import DeleteIcon from "@mui/icons-material/Delete";
 import PrintIcon from "@mui/icons-material/Print";
+import EditIcon from "@mui/icons-material/Edit";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
@@ -33,14 +34,12 @@ const BillingHistory = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
-  // Filters
   const [dateFilter, setDateFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
 
   const rowsPerPage = 10;
   const navigate = useNavigate();
 
-  // 🔹 Fetch bills (newest first)
   const fetchBills = async () => {
     try {
       const { data } = await API.get("/billing/all", {
@@ -61,7 +60,6 @@ const BillingHistory = () => {
     fetchBills();
   }, []);
 
-  // 🔹 Delete bill
   const deleteBill = async (id) => {
     if (!window.confirm("Delete this bill?")) return;
     try {
@@ -75,12 +73,10 @@ const BillingHistory = () => {
     }
   };
 
-  // 🔹 Pagination
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
   };
 
-  // 🔹 Payment status icon logic
   const renderPaymentIcon = (bill) => {
     if (bill.pendingAmount === 0) {
       return (
@@ -107,26 +103,21 @@ const BillingHistory = () => {
     );
   };
 
-  // 🔹 Filtering logic
   const filteredBills = bills.filter((bill) => {
     const name = bill.customerName?.toLowerCase() || "";
     const mobile = bill.customerMobile || "";
     const createdAt = new Date(bill.createdAt);
     const now = new Date();
 
-    // Search
     const searchMatch =
-      name.includes(search.toLowerCase()) ||
-      mobile.includes(search);
+      name.includes(search.toLowerCase()) || mobile.includes(search);
 
-    // Payment filter
     let paymentMatch = true;
     if (paymentFilter === "Paid") paymentMatch = bill.pendingAmount === 0;
     if (paymentFilter === "Unpaid") paymentMatch = bill.paidAmount === 0;
     if (paymentFilter === "Partial")
       paymentMatch = bill.paidAmount > 0 && bill.pendingAmount > 0;
 
-    // Date filter
     let dateMatch = true;
     if (dateFilter === "today") {
       dateMatch = createdAt.toDateString() === now.toDateString();
@@ -143,7 +134,7 @@ const BillingHistory = () => {
 
   return (
     <Box sx={{ p: 1 }}>
-      {/* HEADER + FILTERS */}
+      {/* HEADER */}
       <Box
         sx={{
           display: "flex",
@@ -212,43 +203,72 @@ const BillingHistory = () => {
           <TableBody>
             {filteredBills
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((bill) => (
-                <TableRow key={bill._id}>
-                  <TableCell>{bill.customerName}</TableCell>
-                  <TableCell>{bill.customerMobile}</TableCell>
-                  <TableCell>₹{bill.totalAmount}</TableCell>
-                  <TableCell>
-                    {new Date(bill.createdAt).toLocaleString("en-IN")}
-                  </TableCell>
+              .map((bill) => {
+                const isPaid = bill.pendingAmount === 0;
 
-                  {/* ACTIONS */}
-                  <TableCell>
-                    {/* PAYMENT STATUS ICON */}
-                    <IconButton size="small" disabled>
-                      {renderPaymentIcon(bill)}
-                    </IconButton>
+                return (
+                  <TableRow key={bill._id}>
+                    <TableCell>{bill.customerName}</TableCell>
+                    <TableCell>{bill.customerMobile}</TableCell>
+                    <TableCell>₹{bill.totalAmount}</TableCell>
+                    <TableCell>
+                      {new Date(bill.createdAt).toLocaleString("en-IN")}
+                    </TableCell>
 
-                    {/* PRINT */}
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        navigate(`/admin/invoice/${bill._id}`)
-                      }
-                    >
-                      <PrintIcon fontSize="small" />
-                    </IconButton>
+                    <TableCell>
+                      {/* PAYMENT STATUS */}
+                      <IconButton size="small" disabled>
+                        {renderPaymentIcon(bill)}
+                      </IconButton>
 
-                    {/* DELETE */}
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => deleteBill(bill._id)}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      {/* PRINT */}
+                      <Tooltip title="Print Invoice">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigate(`/admin/invoice/${bill._id}`)
+                          }
+                        >
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      {/* ✏️ EDIT (DISABLED IF PAID) */}
+                      <Tooltip
+                        title={
+                          isPaid
+                            ? "Paid bill cannot be edited"
+                            : "Edit Bill"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            disabled={isPaid}
+                            onClick={() =>
+                              navigate(`/admin/billing/edit/${bill._id}`)
+                            }
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+
+                      {/* DELETE */}
+                      <Tooltip title="Delete Bill">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => deleteBill(bill._id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
 

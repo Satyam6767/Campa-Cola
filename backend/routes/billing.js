@@ -2,7 +2,7 @@ const express = require("express");
 const auth = require("../middleware/auth");
 const Bill = require("../models/Bill");
 const Product = require("../models/Product");
-const Counter = require("../models/Counter"); // ✅ NEW
+const Counter = require("../models/Counter");
 
 const router = express.Router();
 
@@ -70,7 +70,7 @@ router.post("/create", auth("admin"), async (req, res) => {
 
     // 🔴 4️⃣ CREATE BILL
     const newBill = new Bill({
-      invoiceNumber: counter.seq, // ✅ 1,2,3,4...
+      invoiceNumber: counter.seq,
       customerName,
       customerMobile,
       customerAddress,
@@ -123,6 +123,108 @@ router.get("/:id", auth("admin"), async (req, res) => {
 
     res.json(bill);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ===============================
+// UPDATE BILL (EDIT BILL)
+// ===============================
+router.put("/:id", auth("admin"), async (req, res) => {
+  try {
+    const {
+      customerName,
+      customerMobile,
+      customerAddress,
+      items,
+      paymentMode,
+      paidAmount,
+    } = req.body;
+
+    // 🔴 VALIDATION
+    if (
+      !customerName ||
+      !customerAddress ||
+      !items ||
+      items.length === 0
+    ) {
+      return res.status(400).json({ error: "Invalid billing data" });
+    }
+
+    // 🔴 FIND BILL
+    const bill = await Bill.findById(req.params.id);
+
+    if (!bill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    // 🔴 OPTIONAL RULE: BLOCK EDIT IF FULLY PAID
+    // if (bill.paymentStatus === "Paid") {
+    //   return res.status(403).json({ error: "Paid bill cannot be edited" });
+    // }
+
+    // 🔴 1️⃣ RESTORE OLD STOCK
+    for (let oldItem of bill.items) {
+      const product = await Product.findById(oldItem.productId);
+      if (product) {
+        product.stock += oldItem.quantity;
+        await product.save();
+      }
+    }
+
+    // 🔴 2️⃣ CHECK & DEDUCT NEW STOCK
+    for (let item of items) {
+      const product = await Product.findById(item.productId);
+
+      if (!product) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          error: `Insufficient stock for ${product.title}`,
+        });
+      }
+
+      product.stock -= item.quantity;
+      await product.save();
+    }
+
+    // 🔴 3️⃣ RECALCULATE TOTAL
+    const totalAmount = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    if (paidAmount > totalAmount) {
+      return res
+        .status(400)
+        .json({ error: "Paid amount cannot exceed total amount" });
+    }
+
+    const pendingAmount = totalAmount - paidAmount;
+    const paymentStatus =
+      pendingAmount === 0 ? "Paid" : "Unpaid";
+
+    // 🔴 4️⃣ UPDATE BILL (INVOICE NUMBER UNCHANGED)
+    bill.customerName = customerName;
+    bill.customerMobile = customerMobile;
+    bill.customerAddress = customerAddress;
+    bill.items = items;
+    bill.totalAmount = totalAmount;
+    bill.paymentMode = paymentMode;
+    bill.paidAmount = paidAmount;
+    bill.pendingAmount = pendingAmount;
+    bill.paymentStatus = paymentStatus;
+
+    await bill.save();
+
+    res.json({
+      message: "Bill updated successfully",
+      bill,
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
