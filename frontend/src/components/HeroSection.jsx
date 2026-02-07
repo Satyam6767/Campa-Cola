@@ -33,9 +33,9 @@ const HeroSection = () => {
 
           {/* RIGHT */}
           <Box className="hero-image">
-            <img src="../../dist/campa-cola-200.png" alt="Campa Cola Bottle" />
-            <img src="../../dist/campa cola orange.png" alt="Campa Cola Bottle" />
-            <img src="../../dist/campa power up.png" alt="Campa Cola Bottle" />
+            <img src="../assets/campa-cola-200.png" alt="Campa Cola Bottle" />
+            <img src="../assets/campa cola orange.png" alt="Campa Cola Bottle" />
+            <img src="../assets/dist/campa power up.png" alt="Campa Cola Bottle" />
           </Box>
         </Box>
       </Container>
