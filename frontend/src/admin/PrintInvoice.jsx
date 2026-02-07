@@ -91,7 +91,7 @@ const InvoiceLayout = ({ bill }) => {
       }}
     >
       <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
-        Tax Invoice
+        Bill Invoice
       </Typography>
 
       <Box sx={{ px: 2, mt: 2, display: "flex", justifyContent: "space-between" }}>
