@@ -1,5 +1,8 @@
 import { Box, Typography, Button, Container } from "@mui/material";
 import "../mystyle/HeroSection.css";
+import image1 from "../assets/campa-cola-200.png"
+import image2 from "../assets/campa cola orange.png"
+import image3 from "../assets/campa power up.png"
 
 const HeroSection = () => {
   return (
@@ -33,9 +36,9 @@ const HeroSection = () => {
 
           {/* RIGHT */}
           <Box className="hero-image">
-            <img src="../assets/campa-cola-200.png" alt="Campa Cola Bottle" />
-            <img src="../assets/campa cola orange.png" alt="Campa Cola Bottle" />
-            <img src="../assets/dist/campa power up.png" alt="Campa Cola Bottle" />
+            <img src={image1} alt="Campa Cola Bottle" />
+            <img src={image2} alt="Campa Cola Bottle" />
+            <img src={image3} alt="Campa Cola Bottle" />
           </Box>
         </Box>
       </Container>
