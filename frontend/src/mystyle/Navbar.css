@@ -1,0 +1,72 @@
+:root {
+  --campa-blue: #0b2a4a;
+  --campa-red: #c4161c;
+}
+
+/* NAV ITEMS */
+.nav-item {
+  color: #000 !important;
+  font-weight: 600 !important;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 0;
+  height: 2px;
+  background-color: var(--campa-red);
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.nav-item:hover {
+  color: var(--campa-blue) !important;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+.nav-item.active {
+  color: var(--campa-blue) !important;
+}
+
+.nav-item.active::after {
+  width: 100%;
+}
+
+/* NAVBAR BUTTONS */
+.campa-btn {
+  border-color: var(--campa-blue) !important;
+  color: var(--campa-blue) !important;
+  transition: all 0.3s ease !important;
+}
+
+.campa-btn:hover {
+  background-color: var(--campa-blue) !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+}
+
+/* Contained */
+.campa-btn.contained {
+  background-color: var(--campa-blue) !important;
+  color: #fff !important;
+}
+
+.campa-btn.contained:hover {
+  background-color: var(--campa-red) !important;
+}
+
+/* MOBILE MENU */
+.MuiListItemButton-root.Mui-selected {
+  background-color: rgba(11, 42, 74, 0.12) !important;
+}
+
+.MuiListItemButton-root:hover {
+  background-color: rgba(196, 22, 28, 0.08);
+}

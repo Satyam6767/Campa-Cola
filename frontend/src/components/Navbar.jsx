@@ -10,17 +10,27 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  Divider,
 } from "@mui/material";
 import { ShoppingCart, Menu as MenuIcon } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
 import { useContext, useState } from "react";
+import "../mystyle/Navbar.css";
+
+const navLinks = [
+  { label: "Home", path: "/" },
+  { label: "Products", path: "/products" },
+  { label: "About", path: "/about" },
+  { label: "Contact", path: "/contact" },
+];
 
 const Navbar = () => {
   const { token, role, name, logoutUser } = useContext(AuthContext);
   const { cart } = useContext(CartContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const cartCount = cart?.items?.length || 0;
@@ -33,50 +43,57 @@ const Navbar = () => {
 
   return (
     <>
+      {/* ================= NAVBAR ================= */}
       <AppBar
-        position="fixed"
+        position="sticky"
         sx={{
-          background: "white",
-          boxShadow: "0 0 10px grey",
-          zIndex: (theme) => theme.zIndex.modal + 2, // 🔑 ABOVE EVERYTHING
+          background: "#fff",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          {/* LEFT: Menu (mobile) + Logo */}
+          {/* LEFT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {/* MOBILE ONLY HAMBURGER */}
             <IconButton
-              sx={{ display: { xs: "flex", md: "none" } }}
+              sx={{ display: { xs: "flex", sm: "flex", md: "none" } }}
               onClick={() => setMobileOpen(true)}
             >
               <MenuIcon />
             </IconButton>
 
             <Box sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-              <img src="/final logo.png" alt="Logo" style={{ width: "150px" }} />
+              <img src="/final logo.png" alt="Logo" style={{ width: 150 }} />
             </Box>
           </Box>
 
-          {/* CENTER: Nav Links (desktop only) */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
-            {[
-              { label: "Home", path: "/" },
-              { label: "Products", path: "/products" },
-              { label: "About", path: "/about" },
-              { label: "Contact", path: "/contact" },
-            ].map((item) => (
-              <Button
-                key={item.label}
-                component={Link}
-                to={item.path}
-                sx={{ color: "#000", fontWeight: 550 }}
-              >
-                {item.label}
-              </Button>
-            ))}
+          {/* CENTER (DESKTOP + TABLET NAV LINKS) */}
+          <Box sx={{ display: { xs: "none", md: "flex" }, gap: 4 }}>
+            {navLinks.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <Button
+                  key={item.label}
+                  component={Link}
+                  to={item.path}
+                  className={`nav-item ${active ? "active" : ""}`}
+                >
+                  {item.label}
+                </Button>
+              );
+            })}
           </Box>
 
-          {/* RIGHT: Cart + Auth */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {/* RIGHT */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            {token && (
+              <Typography
+                sx={{ display: { xs: "none", md: "block" }, fontWeight: 500 }}
+              >
+                Hi, {name}
+              </Typography>
+            )}
+
             {token && (
               <IconButton component={Link} to="/cart">
                 <Badge badgeContent={cartCount} color="error">
@@ -93,20 +110,38 @@ const Navbar = () => {
                     to="/admin/dashboard"
                     variant="outlined"
                     size="small"
+                    className="campa-btn"
                   >
                     Dashboard
                   </Button>
                 )}
-                <Button variant="outlined" size="small" onClick={handleLogout}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleLogout}
+                  className="campa-btn"
+                >
                   Logout
                 </Button>
               </>
             ) : (
               <>
-                <Button component={Link} to="/login" variant="outlined" size="small">
+                <Button
+                  component={Link}
+                  to="/login"
+                  variant="outlined"
+                  size="small"
+                  className="campa-btn"
+                >
                   Login
                 </Button>
-                <Button component={Link} to="/register" variant="outlined" size="small">
+                <Button
+                  component={Link}
+                  to="/register"
+                  variant="contained"
+                  size="small"
+                  className="campa-btn contained"
+                >
                   Register
                 </Button>
               </>
@@ -115,35 +150,60 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* NAVBAR MOBILE DRAWER */}
+      {/* ========== TABLET SIDEBAR BUTTON (BELOW NAVBAR) ========== */}
+      <Box
+        sx={{
+          display: {
+            xs: "none",
+            sm: "none",
+            md: "flex",
+            lg: "none",
+          },
+          justifyContent: "center",
+          py: 1,
+          backgroundColor: "#fff",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+        }}
+      >
+        <Button
+          startIcon={<MenuIcon />}
+          variant="outlined"
+          className="campa-btn"
+          onClick={() => setMobileOpen(true)}
+        >
+          Menu
+        </Button>
+      </Box>
+
+      {/* ================= MOBILE / TABLET DRAWER ================= */}
       <Drawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         sx={{
-          display: { xs: "block", md: "none" },
-          zIndex: (theme) => theme.zIndex.modal + 3,
-          "& .MuiDrawer-paper": {
-            width: 250,
-            zIndex: (theme) => theme.zIndex.modal + 3,
-          },
+          "& .MuiDrawer-paper": { width: 260 },
         }}
       >
+        <Box sx={{ p: 2 }}>
+          <Typography fontWeight={600} mb={1}>
+            Menu
+          </Typography>
+          <Divider />
+        </Box>
+
         <List>
-          {[
-            { text: "Home", path: "/" },
-            { text: "Products", path: "/products" },
-            { text: "About", path: "/about" },
-            { text: "Contact", path: "/contact" },
-          ].map((item) => (
+          {navLinks.map((item) => (
             <ListItemButton
-              key={item.text}
+              key={item.label}
               component={Link}
               to={item.path}
+              selected={location.pathname === item.path}
               onClick={() => setMobileOpen(false)}
             >
-              <ListItemText primary={item.text} />
+              <ListItemText primary={item.label} />
             </ListItemButton>
           ))}
+
+          <Divider />
 
           {token ? (
             <ListItemButton onClick={handleLogout}>
@@ -161,9 +221,6 @@ const Navbar = () => {
           )}
         </List>
       </Drawer>
-
-      {/* Spacer so content starts below navbar */}
-      <Toolbar />
     </>
   );
 };

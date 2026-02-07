@@ -1,0 +1,189 @@
+:root {
+  --campa-blue: #0b2a4a;
+  --campa-red: #c4161c;
+}
+
+/* HERO BACKGROUND – ONLY TEXTURE */
+.hero-section {
+  background-image: url("../../dist/texture.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* CONTENT LAYOUT */
+.hero-content {
+  min-height: 470px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* LEFT TEXT */
+.hero-text {
+  max-width: 540px;
+  animation: fadeSlideLeft 0.8s ease-out;
+}
+
+/* ================================
+   FIX-2: MUI TYPOGRAPHY OVERRIDE
+================================ */
+
+/* BRAND TAG */
+.hero-text .hero-brand {
+  font-family: "Poppins", "Segoe UI", sans-serif !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 4px !important;
+  font-weight: 700 !important;
+  color: var(--campa-red) !important;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+/* MAIN TITLE */
+.hero-text .hero-title {
+  font-family: "Montserrat", "Segoe UI", sans-serif !important;
+  font-size: 3.4rem !important;
+  font-weight: 800 !important;
+  color: var(--campa-blue) !important;
+  line-height: 1.15 !important;
+  margin-bottom: 20px;
+}
+
+.hero-text .hero-title span {
+  color: var(--campa-red);
+  display: inline-block;
+  position: relative;
+}
+
+/* subtle underline accent */
+.hero-text .hero-title span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 3px;
+  background-color: var(--campa-red);
+  border-radius: 2px;
+}
+
+/* DESCRIPTION */
+.hero-text .hero-desc {
+  font-family: "Inter", "Segoe UI", sans-serif !important;
+  font-size: 1.15rem !important;
+  color: #444 !important;
+  line-height: 1.7 !important;
+  margin-bottom: 34px;
+}
+
+/* ================================
+   BUTTONS
+================================ */
+.hero-buttons {
+  display: flex;
+  gap: 18px;
+}
+
+.hero-btn.primary {
+  background-color: var(--campa-red) !important;
+  /* padding: 12px 30px; */
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.hero-btn.primary:hover {
+  background-color: #a51218 !important;
+  transform: translateY(-2px);
+}
+
+.hero-btn.secondary {
+  background-color: var(--campa-blue) !important;
+  border-color: var(--campa-blue) !important;
+  color: #fff !important;
+  padding: 12px 30px;
+  font-weight: 600;
+}
+
+.hero-btn.secondary:hover {
+  background-color: var(--campa-blue) !important;
+  color: #fff !important;
+  transform: translateY(-2px);
+}
+
+/* ================================
+   RIGHT IMAGE
+================================ */
+
+.hero-image{
+    display: flex;
+}
+.hero-image img {
+  max-width: 200px;
+  width: 100%;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* FLOAT EFFECT */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+}
+
+/* TEXT ENTRY ANIMATION */
+@keyframes fadeSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+@media (max-width: 1150px) {
+.hero-image img{
+    width: 130px;
+  }
+
+  .hero-text .hero-title {
+    font-size: 2.3rem !important;
+  }
+
+}
+
+
+/* RESPONSIVE – START AFTER 768px */
+@media (max-width: 768px) {
+  .hero-content {
+    flex-direction: column-reverse;
+    text-align: center;
+    padding: 50px 0;
+  }
+
+  .hero-text .hero-title {
+    font-size: 2.6rem !important;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+  .hero-image img{
+    width: 100px;
+  }
+}
+
+
+
+@media (max-width: 475px) {
+ 
+
+  .hero-text .hero-title {
+    font-size: 2.0rem !important;
+  }
+
+}

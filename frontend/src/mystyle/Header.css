@@ -1,0 +1,97 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.app-header {
+  width: 100%;
+  height: 39px;
+  padding: 0 32px;
+  background-color: #0B2A4A;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* LEFT SIDE */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.app-subtitle {
+  font-size: 13px;
+  margin: 0;
+  color: #ffffff;
+}
+
+/* Contact info */
+.header-contact {
+  display: flex;
+  gap: 20px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.contact-item svg {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+/* RIGHT SIDE */
+.header-right {
+  display: flex;
+  gap: 12px;
+}
+
+.header-right a {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #0B2A4A;
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.header-right a:hover {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    display: none;
+  }
+}

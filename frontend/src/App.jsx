@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css"
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -32,10 +33,12 @@ import Billing from "./admin/Billing";
 import BillingHistory from "./admin/BillingHistory";
 import PrintInvoice from "./admin/PrintInvoice";
 import EditBill from "./admin/EditBill"; // ✅ ADD THIS
+import Header from "./components/Header";
 
 const App = () => {
   return (
     <Router>
+      <Header />
       <Navbar />
       <ToastContainer position="top-right" autoClose={2000} />
 
