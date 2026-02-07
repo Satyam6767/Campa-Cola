@@ -73,11 +73,14 @@ const InvoiceLayout = ({ bill }) => {
 
   const itemCount = bill.items.length;
   const tableFontSize =
-    itemCount <= 10 ? 14 :
-    itemCount <= 15 ? 12 :
-    10;
+    itemCount <= 10 ? 16 :
+      itemCount <= 15 ? 14 :
+        12;
 
-  const tablePadding = itemCount > 10 ? "4px" : "8px";
+const tablePadding =
+  itemCount <= 10 ? "6px" :
+  itemCount <= 15 ? "4px" :
+  "3px";
 
   return (
     <Box
@@ -87,7 +90,7 @@ const InvoiceLayout = ({ bill }) => {
         margin: "0 auto",
         backgroundColor: "#fff",
         boxSizing: "border-box",
-        paddingBottom: "10mm",
+        paddingBottom: "8mm",
       }}
     >
       <Typography align="center" sx={{ fontSize: 20, fontWeight: 900, mt: 1 }}>
@@ -270,11 +273,12 @@ const PrintInvoice = () => {
           @media print {
             @page {
               size: A4;
-              margin: 10mm;
+              margin: 0; /* 🔥 FIXED EXTRA MARGIN ISSUE */
             }
 
             body {
               margin: 0;
+              padding: 0;
             }
 
             body * {
@@ -293,7 +297,6 @@ const PrintInvoice = () => {
               width: 100%;
             }
 
-            /* ✅ PAGE BREAK FIX */
             .invoice-page {
               page-break-after: always;
               break-after: page;
