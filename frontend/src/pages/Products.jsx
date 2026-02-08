@@ -68,6 +68,7 @@ const Products = () => {
                     image={product.image}
                     alt={product.title}
                     className="product-image"
+                    loading="lazy"
                   />
 
                   <CardContent className="product-content">

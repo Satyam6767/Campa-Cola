@@ -28,8 +28,8 @@ const AboutSection = () => {
           
           {/* LEFT – IMAGES */}
           <Box className="about-images">
-            <img src={image1} alt="Campa Cola Distribution" className="img-main" />
-            <img src={image2} alt="Campa Cola Bottles" className="img-overlap" />
+            <img src={image1} alt="Campa Cola Distribution" className="img-main" loading="lazy" />
+            <img src={image2} alt="Campa Cola Bottles" className="img-overlap" loading="lazy" />
           </Box>
 
           {/* RIGHT – TEXT */}

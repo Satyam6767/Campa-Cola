@@ -36,9 +36,9 @@ const HeroSection = () => {
 
           {/* RIGHT */}
           <Box className="hero-image">
-            <img src={image1} alt="Campa Cola Bottle" />
-            <img src={image2} alt="Campa Cola Bottle" />
-            <img src={image3} alt="Campa Cola Bottle" />
+            <img src={image1} alt="Campa Cola Bottle" loading="lazy" />
+            <img src={image2} alt="Campa Cola Bottle" loading="lazy" />
+            <img src={image3} alt="Campa Cola Bottle" loading="lazy" />
           </Box>
         </Box>
       </Container>

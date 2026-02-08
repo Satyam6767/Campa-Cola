@@ -63,7 +63,7 @@ const Navbar = () => {
             </IconButton>
 
             <Box sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-              <img src="/final logo.png" alt="Logo" style={{ width: 150 }} />
+              <img src="/final logo.png" alt="Logo" style={{ width: 150 }} loading="lazy" />
             </Box>
           </Box>
 
