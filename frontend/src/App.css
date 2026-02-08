@@ -9,3 +9,9 @@ html, body, #root {
   width: 100%;
   height: 100%;
 }
+
+
+:root {
+  --campa-blue: #0b2a4a;
+  --campa-red: #c4161c;
+}

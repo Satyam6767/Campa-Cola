@@ -94,13 +94,14 @@ const Navbar = () => {
               </Typography>
             )}
 
-            {token && (
-              <IconButton component={Link} to="/cart">
-                <Badge badgeContent={cartCount} color="error">
-                  <ShoppingCart sx={{ color: "#000" }} />
-                </Badge>
-              </IconButton>
-            )}
+            {token && role !== "admin" && (
+  <IconButton component={Link} to="/cart">
+    <Badge badgeContent={cartCount} color="error">
+      <ShoppingCart sx={{ color: "#000" }} />
+    </Badge>
+  </IconButton>
+)}
+
 
             {token ? (
               <>
@@ -119,7 +120,7 @@ const Navbar = () => {
                   variant="outlined"
                   size="small"
                   onClick={handleLogout}
-                  className="campa-btn"
+                  className="campa-btn contained"
                 >
                   Logout
                 </Button>
@@ -131,7 +132,7 @@ const Navbar = () => {
                   to="/login"
                   variant="outlined"
                   size="small"
-                  className="campa-btn"
+                  className="campa-btn "
                 >
                   Login
                 </Button>
@@ -140,7 +141,7 @@ const Navbar = () => {
                   to="/register"
                   variant="contained"
                   size="small"
-                  className="campa-btn contained"
+                  className="campa-btn contained "
                 >
                   Register
                 </Button>
