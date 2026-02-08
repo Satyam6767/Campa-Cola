@@ -1,64 +1,105 @@
-import { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Container,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Button,
+} from "@mui/material";
+import { useEffect, useState, useContext } from "react";
+import "../mystyle/Products.css";
+import { AuthContext } from "../context/AuthContext";
+import { CartContext } from "../context/CartContext";
 import API from "../api/api";
-import { Grid, Card, CardMedia, CardContent, Typography, CircularProgress, Container, Button } from "@mui/material";
-import { Link } from "react-router-dom";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProducts = async () => {
-    try {
-      const { data } = await API.get("/products/all");
-      setProducts(data);
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
-  };
+  const { token, role } = useContext(AuthContext);
+  const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
-    fetchProducts();
+    API.get("/products")
+      .then((res) => {
+        setProducts(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching products:", err);
+        setLoading(false);
+      });
   }, []);
 
-  if (loading) return <CircularProgress sx={{ display: "block", mx: "auto", mt: 10 }} />;
-
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
-        All Products
-      </Typography>
+    <Box className="products-section">
+      <Container maxWidth="xl">
 
-      <Grid container spacing={3}>
-        {products.map((p) => (
-          <Grid item xs={12} sm={4} md={3} key={p._id}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="180"
-                image={p.image}
-                alt={p.title}
-              />
-              <CardContent>
-                <Typography sx={{ fontWeight: "bold" }}>{p.title}</Typography>
-                <Typography color="text.secondary">₹{p.price}</Typography>
+        {/* SECTION HEADER */}
+        <Box className="section-header">
+          <Typography className="section-tag">
+            CAMPA COLA
+          </Typography>
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  component={Link}
-                  to={`/product/${p._id}`}
-                  sx={{ mt: 1 }}
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
+          <Typography className="section-title">
+            Our <span>Products</span>
+          </Typography>
+        </Box>
+
+        {loading ? (
+          <Typography align="center">Loading products...</Typography>
+        ) : (
+          <Grid container spacing={2}>
+            {products.map((product) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                lg={2}     // ✅ 6 products per row on large screens
+                key={product._id}
+              >
+                <Card className="product-card">
+
+                  <CardMedia
+                    component="img"
+                    image={product.image}
+                    alt={product.title}
+                    className="product-image"
+                  />
+
+                  <CardContent className="product-content">
+                    <Typography className="product-name">
+                      {product.title}
+                    </Typography>
+
+                    <Typography className="product-price">
+                      ₹{product.price}
+                    </Typography>
+
+                    {/* USER ONLY */}
+                    {token && role === "user" && (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        className="add-to-cart-btn"
+                        onClick={() => addToCart(product)}
+                      >
+                        Add to Cart
+                      </Button>
+                    )}
+                  </CardContent>
+
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
-    </Container>
+        )}
+
+      </Container>
+    </Box>
   );
 };
 
