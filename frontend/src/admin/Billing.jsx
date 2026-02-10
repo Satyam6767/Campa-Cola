@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   Button,
-  Select,
   MenuItem,
   Paper,
   Table,
@@ -17,7 +16,9 @@ import {
   RadioGroup,
   FormControlLabel,
   FormLabel,
+  Select,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import API from "../api/api";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
@@ -33,7 +34,7 @@ const Billing = () => {
   const [customerMobile, setCustomerMobile] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
 
-  const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
   // PAYMENT STATES
@@ -61,15 +62,12 @@ const Billing = () => {
     if (!selectedProduct || quantity <= 0)
       return toast.error("Invalid product or quantity");
 
-    const product = products.find((p) => p._id === selectedProduct);
-    if (!product) return;
-
-    if (quantity > product.stock)
+    if (quantity > selectedProduct.stock)
       return toast.error("Quantity exceeds available stock");
 
     setItems((prev) => {
       const existingIndex = prev.findIndex(
-        (item) => item.productId === product._id
+        (item) => item.productId === selectedProduct._id
       );
 
       if (existingIndex !== -1) {
@@ -83,15 +81,16 @@ const Billing = () => {
       return [
         ...prev,
         {
-          productId: product._id,
-          name: product.title,
-          price: product.price,
+          productId: selectedProduct._id,
+          name: selectedProduct.title,
+          price: selectedProduct.price,
           quantity,
         },
       ];
     });
 
-    setSelectedProduct("");
+    // RESET
+    setSelectedProduct(null);
     setQuantity(1);
   };
 
@@ -138,7 +137,6 @@ const Billing = () => {
 
   // SUBMIT BILL
   const handleSubmitBill = async () => {
-    // ❗ ONLY ITEMS REQUIRED
     if (!items.length)
       return toast.error("Please add at least one item");
 
@@ -193,7 +191,7 @@ const Billing = () => {
         </Button>
       </Box>
 
-      {/* CUSTOMER DETAILS (OPTIONAL) */}
+      {/* CUSTOMER DETAILS */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography fontWeight="bold" mb={1}>
           Customer Details (Optional)
@@ -234,21 +232,28 @@ const Billing = () => {
           Add Item
         </Typography>
 
-        <Select
-          fullWidth
+        {/* 🔍 SEARCH + SELECT (SAME FIELD) */}
+        <Autocomplete
           size="small"
-          sx={{ mb: 1 }}
+          options={products}
           value={selectedProduct}
-          onChange={(e) => setSelectedProduct(e.target.value)}
-          displayEmpty
-        >
-          <MenuItem value="">Select Product</MenuItem>
-          {products.map((p) => (
-            <MenuItem key={p._id} value={p._id} disabled={p.stock === 0}>
-              {p.title} – ₹{p.price} (Stock: {p.stock})
-            </MenuItem>
-          ))}
-        </Select>
+          onChange={(e, newValue) => setSelectedProduct(newValue)}
+          getOptionLabel={(option) =>
+            `${option.title} – ₹${option.price} (Stock: ${option.stock})`
+          }
+          isOptionEqualToValue={(option, value) =>
+            option._id === value._id
+          }
+          getOptionDisabled={(option) => option.stock === 0}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Select / Search Product"
+              placeholder="Type or select product"
+              sx={{ mb: 1 }}
+            />
+          )}
+        />
 
         <TextField
           label="Quantity"
