@@ -15,7 +15,6 @@ import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
-import Contact from "./pages/Contact";
 import Aboutus from "./pages/Aboutus";
 
 // Layout Components
@@ -34,6 +33,8 @@ import BillingHistory from "./admin/BillingHistory";
 import PrintInvoice from "./admin/PrintInvoice";
 import EditBill from "./admin/EditBill"; // ✅ ADD THIS
 import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Contact from "./pages/Contact";
 
 const App = () => {
   return (
@@ -81,7 +82,8 @@ const App = () => {
         </Route>
       </Routes>
 
-      {/* <Footer /> */}
+
+      <Footer />
     </Router>
   );
 };

@@ -1,0 +1,98 @@
+/* ===== Campa Theme ===== */
+:root {
+  --campa-blue: #0B2A4A;
+  --campa-red: #C4161C;
+  --campa-light: #f4f7fa;
+}
+
+/* Container */
+.campa-container {
+  background: var(--campa-light);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* Header */
+.campa-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--campa-blue);
+  margin-bottom: 20px;
+}
+
+.campa-header-icon {
+  background: var(--campa-red);
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(196,22,28,0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(196,22,28,0); }
+  100% { box-shadow: 0 0 0 0 rgba(196,22,28,0); }
+}
+
+/* Add Box */
+.campa-add-box {
+  border-left: 5px solid var(--campa-red);
+  transition: 0.3s ease;
+}
+
+.campa-add-box:hover {
+  transform: translateY(-3px);
+}
+
+/* Add Button */
+.campa-add-btn {
+  background: var(--campa-red) !important;
+  transition: 0.3s ease !important;
+}
+
+.campa-add-btn:hover {
+  background: #a31217 !important;
+  transform: scale(1.05);
+}
+
+/* Table */
+.campa-table-head {
+  background: var(--campa-blue);
+}
+
+.campa-table-head th {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Table Row Hover */
+.campa-row {
+  transition: 0.2s ease;
+}
+
+.campa-row:hover {
+  background: #eef3f8;
+  transform: scale(1.01);
+}
+
+/* Delete Icon */
+.campa-delete-btn {
+  color: var(--campa-red) !important;
+  transition: 0.3s ease;
+}
+
+.campa-delete-btn:hover {
+  background: rgba(196,22,28,0.1) !important;
+  transform: scale(1.2);
+}
+
+/* Empty State */
+.campa-empty {
+  text-align: center;
+  padding: 30px;
+  color: gray;
+}

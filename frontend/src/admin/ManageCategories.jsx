@@ -13,12 +13,16 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Divider
+  Divider,
+  InputAdornment
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CategoryIcon from "@mui/icons-material/Category";
+import LabelIcon from "@mui/icons-material/Label";
+
 import { toast } from "react-toastify";
+import "../mystyle/ManageCategories.css";
 
 const ManageCategories = () => {
   const { token } = useContext(AuthContext);
@@ -51,7 +55,7 @@ const ManageCategories = () => {
       toast.success("Category added!");
       setCategory("");
       fetchCategories();
-    } catch (err) {
+    } catch {
       toast.error("Failed to add");
     }
   };
@@ -63,54 +67,50 @@ const ManageCategories = () => {
       });
       toast.info("Category deleted");
       fetchCategories();
-    } catch (err) {
+    } catch {
       toast.error("Delete error");
     }
   };
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box className="campa-container">
 
-      {/* Header */}
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: "bold",
-          mb: 1,
-          display: "flex",
-          alignItems: "center",
-          gap: 0.5,
-          fontSize: "16px"
-        }}
-      >
-        <CategoryIcon sx={{ fontSize: 20, color: "#1976d2" }} />
+      {/* HEADER */}
+      <div className="campa-header">
+        <div className="campa-header-icon">
+          <CategoryIcon />
+        </div>
         Manage Categories
-      </Typography>
+      </div>
 
-      {/* Add Category Box */}
-      <Paper elevation={1} sx={{ p: 1.5, mb: 2, borderRadius: "8px" }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: "bold", fontSize: "14px" }}>
+      {/* ADD CATEGORY */}
+      <Paper elevation={3} className="campa-add-box" sx={{ p: 2, mb: 3, borderRadius: 3 }}>
+        <Typography sx={{ fontWeight: 600, mb: 1 }}>
           Add New Category
         </Typography>
 
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ mb: 2 }} />
 
         <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
             fullWidth
             size="small"
             label="Category Name"
-            InputProps={{ sx: { fontSize: "13px" } }}
-            InputLabelProps={{ sx: { fontSize: "13px" } }}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LabelIcon sx={{ color: "#C4161C" }} />
+                </InputAdornment>
+              ),
+            }}
           />
 
           <Button
             variant="contained"
-            size="small"
-            startIcon={<AddCircleIcon sx={{ fontSize: 16 }} />}
-            sx={{ fontSize: "12px", px: 1.5 }}
+            startIcon={<AddCircleIcon />}
+            className="campa-add-btn"
             onClick={handleAdd}
           >
             Add
@@ -118,35 +118,42 @@ const ManageCategories = () => {
         </Box>
       </Paper>
 
-      {/* Categories Table */}
-      <Paper elevation={1} sx={{ borderRadius: "8px", overflow: "hidden" }}>
+      {/* TABLE */}
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
         <Table size="small">
-          <TableHead sx={{ backgroundColor: "#1976d2", height: "30px" }}>
+          <TableHead className="campa-table-head">
             <TableRow>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "13px" }}>
-                Category Name
-              </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "13px" }}>
-                Action
-              </TableCell>
+              <TableCell>Category Name</TableCell>
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {categories.map((c) => (
-              <TableRow key={c._id} sx={{ height: "35px" }}>
-                <TableCell sx={{ fontSize: "13px" }}>{c.name}</TableCell>
-
-                <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDelete(c._id)}
-                  >
-                    <DeleteIcon sx={{ fontSize: 16, color: "red" }} />
-                  </IconButton>
+            {categories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <div className="campa-empty">
+                    <CategoryIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+                    <div>No categories found</div>
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              categories.map((c) => (
+                <TableRow key={c._id} className="campa-row">
+                  <TableCell>{c.name}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      size="small"
+                      className="campa-delete-btn"
+                      onClick={() => handleDelete(c._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </Paper>
