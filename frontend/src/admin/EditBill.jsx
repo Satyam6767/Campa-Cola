@@ -47,7 +47,7 @@ const EditBill = () => {
 
   if (loading) return null;
 
-  // ✅ CORRECT PAID CHECK
+  // Keeping this if needed later
   const isFullyPaid = bill.pendingAmount === 0;
 
   // 🔹 Quantity change
@@ -69,13 +69,8 @@ const EditBill = () => {
     0
   );
 
-  // 🔹 Submit update
+  // 🔹 Submit update (NO RESTRICTION)
   const handleUpdate = async () => {
-    if (isFullyPaid) {
-      toast.error("Fully paid bill cannot be edited");
-      return;
-    }
-
     try {
       await API.put(
         `/billing/${id}`,
@@ -105,20 +100,12 @@ const EditBill = () => {
         Edit Bill (Invoice #{bill.invoiceNumber})
       </Typography>
 
-      {/* 🚫 FULLY PAID WARNING */}
-      {isFullyPaid && (
-        <Typography color="error" fontWeight="bold" mb={2}>
-          This bill is fully paid and cannot be edited.
-        </Typography>
-      )}
-
       <Paper sx={{ p: 2 }}>
         {/* CUSTOMER DETAILS */}
         <Box sx={{ display: "grid", gap: 2, mb: 3 }}>
           <TextField
             label="Customer Name"
             value={bill.customerName}
-            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerName: e.target.value })
             }
@@ -127,7 +114,6 @@ const EditBill = () => {
           <TextField
             label="Mobile"
             value={bill.customerMobile}
-            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerMobile: e.target.value })
             }
@@ -136,7 +122,6 @@ const EditBill = () => {
           <TextField
             label="Address"
             value={bill.customerAddress}
-            disabled={isFullyPaid}
             onChange={(e) =>
               setBill({ ...bill, customerAddress: e.target.value })
             }
@@ -165,7 +150,6 @@ const EditBill = () => {
                     size="small"
                     type="number"
                     value={item.quantity}
-                    disabled={isFullyPaid}
                     onChange={(e) => updateQty(i, e.target.value)}
                     sx={{ width: 80 }}
                   />
@@ -176,7 +160,6 @@ const EditBill = () => {
                 <TableCell>
                   <IconButton
                     color="error"
-                    disabled={isFullyPaid}
                     onClick={() => removeItem(i)}
                   >
                     <DeleteIcon fontSize="small" />
@@ -195,7 +178,6 @@ const EditBill = () => {
             label="Paid Amount"
             type="number"
             value={paidAmount}
-            disabled={isFullyPaid}
             onChange={(e) => setPaidAmount(Number(e.target.value))}
             sx={{ mt: 1 }}
           />
@@ -205,7 +187,6 @@ const EditBill = () => {
         <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
           <Button
             variant="contained"
-            disabled={isFullyPaid}
             onClick={handleUpdate}
           >
             Update Bill

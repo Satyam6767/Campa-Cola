@@ -22,7 +22,6 @@ router.post("/create", auth("admin"), async (req, res) => {
       paidAmount,
     } = req.body;
 
-    // 🔴 VALIDATION
     if (
       !customerName ||
       !customerMobile ||
@@ -141,7 +140,6 @@ router.put("/:id", auth("admin"), async (req, res) => {
       paidAmount,
     } = req.body;
 
-    // 🔴 VALIDATION
     if (
       !customerName ||
       !customerAddress ||
@@ -151,18 +149,10 @@ router.put("/:id", auth("admin"), async (req, res) => {
       return res.status(400).json({ error: "Invalid billing data" });
     }
 
-    // 🔴 FIND BILL
     const bill = await Bill.findById(req.params.id);
 
     if (!bill) {
       return res.status(404).json({ error: "Bill not found" });
-    }
-
-    // 🔒 BLOCK EDIT ONLY IF FULLY PAID
-    if (bill.pendingAmount === 0) {
-      return res.status(403).json({
-        error: "Fully paid bill cannot be edited",
-      });
     }
 
     // 🔴 1️⃣ RESTORE OLD STOCK
@@ -208,7 +198,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     const paymentStatus =
       pendingAmount === 0 ? "Paid" : "Unpaid";
 
-    // 🔴 4️⃣ UPDATE BILL (INVOICE NUMBER UNCHANGED)
+    // 🔴 4️⃣ UPDATE BILL
     bill.customerName = customerName;
     bill.customerMobile = customerMobile;
     bill.customerAddress = customerAddress;

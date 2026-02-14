@@ -216,12 +216,10 @@ const BillingHistory = () => {
                     </TableCell>
 
                     <TableCell>
-                      {/* PAYMENT STATUS */}
                       <IconButton size="small" disabled>
                         {renderPaymentIcon(bill)}
                       </IconButton>
 
-                      {/* PRINT */}
                       <Tooltip title="Print Invoice">
                         <IconButton
                           size="small"
@@ -233,11 +231,11 @@ const BillingHistory = () => {
                         </IconButton>
                       </Tooltip>
 
-                      {/* ✏️ EDIT */}
+                      {/* EDIT BUTTON ENABLED */}
                       <Tooltip
                         title={
                           isFullyPaid
-                            ? "Fully paid bill cannot be edited"
+                            ? "Fully paid bill (Editing Allowed)"
                             : "Edit Bill"
                         }
                       >
@@ -245,7 +243,6 @@ const BillingHistory = () => {
                           <IconButton
                             size="small"
                             color="primary"
-                            disabled={isFullyPaid}
                             onClick={() =>
                               navigate(`/admin/billing/edit/${bill._id}`)
                             }
@@ -255,7 +252,6 @@ const BillingHistory = () => {
                         </span>
                       </Tooltip>
 
-                      {/* DELETE */}
                       <Tooltip title="Delete Bill">
                         <IconButton
                           size="small"
