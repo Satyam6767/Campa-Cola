@@ -6,9 +6,10 @@ const Counter = require("../models/Counter");
 
 const router = express.Router();
 
-// ===============================
-// CREATE BILL (OFFLINE)
-// ===============================
+
+// ======================================================
+// CREATE BILL
+// ======================================================
 router.post("/create", auth("admin"), async (req, res) => {
   try {
     const {
@@ -16,10 +17,9 @@ router.post("/create", auth("admin"), async (req, res) => {
       customerMobile,
       customerAddress,
       items,
-      totalAmount,
       paymentMode,
       paymentStatus,
-      paidAmount,
+      paidAmount = 0,
     } = req.body;
 
     if (
@@ -32,13 +32,7 @@ router.post("/create", auth("admin"), async (req, res) => {
       return res.status(400).json({ error: "Invalid billing data" });
     }
 
-    if (paymentStatus === "Paid" && paidAmount > totalAmount) {
-      return res
-        .status(400)
-        .json({ error: "Paid amount cannot exceed total amount" });
-    }
-
-    // 🔴 1️⃣ CHECK & UPDATE STOCK
+    // 🔹 1️⃣ Check & Deduct Stock
     for (let item of items) {
       const product = await Product.findById(item.productId);
 
@@ -56,18 +50,30 @@ router.post("/create", auth("admin"), async (req, res) => {
       await product.save();
     }
 
-    // 🔴 2️⃣ PAYMENT CALCULATION
-    const finalPaid = paymentStatus === "Paid" ? paidAmount : 0;
-    const pendingAmount = totalAmount - finalPaid;
+    // 🔹 2️⃣ Recalculate Total From Backend
+    const totalAmount = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
 
-    // 🔴 3️⃣ AUTO INCREMENT INVOICE NUMBER
+    if (paidAmount > totalAmount) {
+      return res
+        .status(400)
+        .json({ error: "Paid amount cannot exceed total amount" });
+    }
+
+    const pendingAmount = totalAmount - paidAmount;
+    const finalPaymentStatus =
+      pendingAmount === 0 ? "Paid" : "Unpaid";
+
+    // 🔹 3️⃣ Auto Increment Invoice
     const counter = await Counter.findOneAndUpdate(
       { name: "invoice" },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
 
-    // 🔴 4️⃣ CREATE BILL
+    // 🔹 4️⃣ Create Bill
     const newBill = new Bill({
       invoiceNumber: counter.seq,
       customerName,
@@ -76,8 +82,8 @@ router.post("/create", auth("admin"), async (req, res) => {
       items,
       totalAmount,
       paymentMode,
-      paymentStatus,
-      paidAmount: finalPaid,
+      paymentStatus: finalPaymentStatus,
+      paidAmount,
       pendingAmount,
     });
 
@@ -87,15 +93,17 @@ router.post("/create", auth("admin"), async (req, res) => {
       message: "Bill created successfully",
       bill: newBill,
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ===============================
+
+// ======================================================
 // GET ALL BILLS
-// ===============================
+// ======================================================
 router.get("/all", auth("admin"), async (req, res) => {
   try {
     const bills = await Bill.find()
@@ -108,9 +116,10 @@ router.get("/all", auth("admin"), async (req, res) => {
   }
 });
 
-// ===============================
+
+// ======================================================
 // GET SINGLE BILL
-// ===============================
+// ======================================================
 router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id)
@@ -126,9 +135,10 @@ router.get("/:id", auth("admin"), async (req, res) => {
   }
 });
 
-// ===============================
+
+// ======================================================
 // UPDATE BILL (EDIT BILL)
-// ===============================
+// ======================================================
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const {
@@ -137,7 +147,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       customerAddress,
       items,
       paymentMode,
-      paidAmount,
+      paidAmount = 0,
     } = req.body;
 
     if (
@@ -155,7 +165,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       return res.status(404).json({ error: "Bill not found" });
     }
 
-    // 🔴 1️⃣ RESTORE OLD STOCK
+    // 🔹 1️⃣ Restore Old Stock
     for (let oldItem of bill.items) {
       const product = await Product.findById(oldItem.productId);
       if (product) {
@@ -164,7 +174,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       }
     }
 
-    // 🔴 2️⃣ CHECK & DEDUCT NEW STOCK
+    // 🔹 2️⃣ Check & Deduct New Stock
     for (let item of items) {
       const product = await Product.findById(item.productId);
 
@@ -182,7 +192,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       await product.save();
     }
 
-    // 🔴 3️⃣ RECALCULATE TOTAL
+    // 🔹 3️⃣ Recalculate Total
     const totalAmount = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -198,7 +208,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     const paymentStatus =
       pendingAmount === 0 ? "Paid" : "Unpaid";
 
-    // 🔴 4️⃣ UPDATE BILL
+    // 🔹 4️⃣ Update Bill
     bill.customerName = customerName;
     bill.customerMobile = customerMobile;
     bill.customerAddress = customerAddress;
@@ -215,19 +225,38 @@ router.put("/:id", auth("admin"), async (req, res) => {
       message: "Bill updated successfully",
       bill,
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// ===============================
-// DELETE BILL
-// ===============================
+
+// ======================================================
+// DELETE BILL (RESTORE STOCK)
+// ======================================================
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
+    const bill = await Bill.findById(req.params.id);
+
+    if (!bill) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    // 🔹 Restore Stock Before Delete
+    for (let item of bill.items) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        product.stock += item.quantity;
+        await product.save();
+      }
+    }
+
     await Bill.findByIdAndDelete(req.params.id);
+
     res.json({ message: "Bill deleted successfully" });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
