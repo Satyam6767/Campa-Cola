@@ -11,9 +11,6 @@ import {
   TableCell,
   TableBody,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import API from "../api/api";
@@ -32,9 +29,11 @@ const EditBill = () => {
   const [loading, setLoading] = useState(true);
 
   const [products, setProducts] = useState([]);
-  const [openProductDialog, setOpenProductDialog] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedQty, setSelectedQty] = useState(1);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [newQty, setNewQty] = useState(1);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // ===============================
   // FETCH BILL
@@ -59,25 +58,65 @@ const EditBill = () => {
   // FETCH PRODUCTS
   // ===============================
   useEffect(() => {
-    API.get("/products")
+    API.get("/products", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then(({ data }) => {
         setProducts(data);
+        setFilteredProducts(data);
       })
       .catch(() => {
         toast.error("Failed to load products");
       });
-  }, []);
+  }, [token]);
 
   if (loading || !bill) return null;
 
   // ===============================
-  // ADD PRODUCT TO BILL
+  // HANDLE SEARCH
   // ===============================
-  const handleAddProduct = (product) => {
+  const handleSearch = (value) => {
+    setSearch(value);
+    setShowDropdown(true);
+
+    const filtered = products.filter((product) =>
+      product.title.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFilteredProducts(filtered);
+  };
+
+  // ===============================
+  // SELECT PRODUCT
+  // ===============================
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setSearch(product.title);
+    setShowDropdown(false);
+  };
+
+  // ===============================
+  // ADD PRODUCT WITH QTY
+  // ===============================
+  const handleAddProduct = () => {
+    if (!selectedProduct) {
+      toast.error("Please select a product");
+      return;
+    }
+
+    if (newQty <= 0) {
+      toast.error("Quantity must be greater than 0");
+      return;
+    }
+
+    if (newQty > selectedProduct.stock) {
+      toast.error("Insufficient stock");
+      return;
+    }
+
     const exists = items.find(
       (item) =>
-        item.productId?._id === product._id ||
-        item.productId === product._id
+        item.productId?._id === selectedProduct._id
     );
 
     if (exists) {
@@ -85,27 +124,25 @@ const EditBill = () => {
       return;
     }
 
-    if (selectedQty > product.stock) {
-      toast.error("Insufficient stock");
-      return;
-    }
-
     const newItem = {
       productId: {
-        _id: product._id,
-        title: product.title,
+        _id: selectedProduct._id,
+        title: selectedProduct.title,
       },
-      price: product.price,
-      quantity: selectedQty,
+      price: selectedProduct.price,
+      quantity: newQty,
     };
 
     setItems([...items, newItem]);
-    setSelectedQty(1);
-    setOpenProductDialog(false);
+
+    // reset
+    setSelectedProduct(null);
+    setSearch("");
+    setNewQty(1);
   };
 
   // ===============================
-  // UPDATE QTY
+  // UPDATE QTY IN TABLE
   // ===============================
   const updateQty = (index, value) => {
     const updated = [...items];
@@ -113,9 +150,6 @@ const EditBill = () => {
     setItems(updated);
   };
 
-  // ===============================
-  // REMOVE ITEM
-  // ===============================
   const removeItem = (index) => {
     const updated = items.filter((_, i) => i !== index);
     setItems(updated);
@@ -138,8 +172,7 @@ const EditBill = () => {
           customerMobile: bill.customerMobile,
           customerAddress: bill.customerAddress,
           items: items.map((item) => ({
-            productId:
-              item.productId?._id || item.productId,
+            productId: item.productId._id,
             price: item.price,
             quantity: item.quantity,
           })),
@@ -158,11 +191,6 @@ const EditBill = () => {
     }
   };
 
-  // Filtered products
-  const filteredProducts = products.filter((product) =>
-    product.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" fontWeight="bold" mb={2}>
@@ -170,39 +198,75 @@ const EditBill = () => {
       </Typography>
 
       <Paper sx={{ p: 2 }}>
-        {/* CUSTOMER DETAILS */}
-        <Box sx={{ display: "grid", gap: 2, mb: 3 }}>
-          <TextField
-            label="Customer Name"
-            value={bill.customerName}
-            onChange={(e) =>
-              setBill({ ...bill, customerName: e.target.value })
-            }
-          />
-          <TextField
-            label="Mobile"
-            value={bill.customerMobile}
-            onChange={(e) =>
-              setBill({ ...bill, customerMobile: e.target.value })
-            }
-          />
-          <TextField
-            label="Address"
-            value={bill.customerAddress}
-            onChange={(e) =>
-              setBill({ ...bill, customerAddress: e.target.value })
-            }
-          />
-        </Box>
 
-        {/* ADD PRODUCT BUTTON */}
-        <Button
-          variant="outlined"
-          sx={{ mb: 2 }}
-          onClick={() => setOpenProductDialog(true)}
-        >
-          Add Product
-        </Button>
+        {/* ADD PRODUCT SECTION */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" mb={1}>
+            Add Product
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ flex: 1, position: "relative" }}>
+              <TextField
+                fullWidth
+                label="Search Product"
+                value={search}
+                onFocus={() => setShowDropdown(true)}
+                onChange={(e) =>
+                  handleSearch(e.target.value)
+                }
+              />
+
+              {showDropdown && (
+                <Paper
+                  sx={{
+                    position: "absolute",
+                    width: "100%",
+                    maxHeight: 200,
+                    overflow: "auto",
+                    zIndex: 10,
+                  }}
+                >
+                  {filteredProducts.map((product) => (
+                    <Box
+                      key={product._id}
+                      sx={{
+                        p: 1,
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "#f5f5f5",
+                        },
+                      }}
+                      onClick={() =>
+                        handleSelectProduct(product)
+                      }
+                    >
+                      {product.title} - ₹{product.price} 
+                      (Stock: {product.stock})
+                    </Box>
+                  ))}
+                </Paper>
+              )}
+            </Box>
+
+            <TextField
+              type="number"
+              label="Qty"
+              value={newQty}
+              onChange={(e) =>
+                setNewQty(Number(e.target.value))
+              }
+              sx={{ width: 100 }}
+            />
+
+            <Button
+              variant="contained"
+              onClick={handleAddProduct}
+            >
+              Add
+            </Button>
+          </Box>
+        </Box>
 
         {/* ITEMS TABLE */}
         <Table size="small">
@@ -219,8 +283,12 @@ const EditBill = () => {
           <TableBody>
             {items.map((item, i) => (
               <TableRow key={i}>
-                <TableCell>{item.productId?.title}</TableCell>
-                <TableCell>₹{item.price}</TableCell>
+                <TableCell>
+                  {item.productId?.title}
+                </TableCell>
+                <TableCell>
+                  ₹{item.price}
+                </TableCell>
                 <TableCell>
                   <TextField
                     size="small"
@@ -238,7 +306,9 @@ const EditBill = () => {
                 <TableCell>
                   <IconButton
                     color="error"
-                    onClick={() => removeItem(i)}
+                    onClick={() =>
+                      removeItem(i)
+                    }
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -267,6 +337,7 @@ const EditBill = () => {
           <Button variant="contained" onClick={handleUpdate}>
             Update Bill
           </Button>
+
           <Button
             variant="outlined"
             onClick={() =>
@@ -276,72 +347,8 @@ const EditBill = () => {
             Cancel
           </Button>
         </Box>
+
       </Paper>
-
-      {/* PRODUCT DIALOG */}
-      <Dialog
-        open={openProductDialog}
-        onClose={() => setOpenProductDialog(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Select Product</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            placeholder="Search product..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            sx={{ mb: 2 }}
-          />
-
-          {filteredProducts.map((product) => (
-            <Paper
-              key={product._id}
-              sx={{
-                p: 2,
-                mb: 1,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Box>
-                <Typography>
-                  {product.title}
-                </Typography>
-                <Typography variant="body2">
-                  ₹{product.price} | Stock:{" "}
-                  {product.stock}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  type="number"
-                  size="small"
-                  value={selectedQty}
-                  onChange={(e) =>
-                    setSelectedQty(Number(e.target.value))
-                  }
-                  sx={{ width: 70 }}
-                />
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() =>
-                    handleAddProduct(product)
-                  }
-                >
-                  Add
-                </Button>
-              </Box>
-            </Paper>
-          ))}
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 };
