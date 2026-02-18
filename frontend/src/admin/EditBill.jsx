@@ -11,6 +11,9 @@ import {
   TableCell,
   TableBody,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import API from "../api/api";
@@ -28,10 +31,10 @@ const EditBill = () => {
   const [paidAmount, setPaidAmount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 NEW STATES
   const [products, setProducts] = useState([]);
+  const [openProductDialog, setOpenProductDialog] = useState(false);
   const [search, setSearch] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [selectedQty, setSelectedQty] = useState(1);
 
   // ===============================
   // FETCH BILL
@@ -56,37 +59,21 @@ const EditBill = () => {
   // FETCH PRODUCTS
   // ===============================
   useEffect(() => {
-    API.get("/products", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    API.get("/products")
       .then(({ data }) => {
         setProducts(data);
-        setFilteredProducts(data);
       })
       .catch(() => {
         toast.error("Failed to load products");
       });
-  }, [token]);
+  }, []);
 
   if (loading || !bill) return null;
 
   // ===============================
-  // SEARCH PRODUCT
+  // ADD PRODUCT TO BILL
   // ===============================
-  const handleSearch = (value) => {
-    setSearch(value);
-
-    const filtered = products.filter((product) =>
-      product.title.toLowerCase().includes(value.toLowerCase())
-    );
-
-    setFilteredProducts(filtered);
-  };
-
-  // ===============================
-  // ADD PRODUCT
-  // ===============================
-  const addProductToBill = (product) => {
+  const handleAddProduct = (product) => {
     const exists = items.find(
       (item) =>
         item.productId?._id === product._id ||
@@ -98,8 +85,8 @@ const EditBill = () => {
       return;
     }
 
-    if (product.stock <= 0) {
-      toast.error("Product out of stock");
+    if (selectedQty > product.stock) {
+      toast.error("Insufficient stock");
       return;
     }
 
@@ -109,11 +96,12 @@ const EditBill = () => {
         title: product.title,
       },
       price: product.price,
-      quantity: 1,
+      quantity: selectedQty,
     };
 
     setItems([...items, newItem]);
-    setSearch("");
+    setSelectedQty(1);
+    setOpenProductDialog(false);
   };
 
   // ===============================
@@ -133,9 +121,6 @@ const EditBill = () => {
     setItems(updated);
   };
 
-  // ===============================
-  // CALCULATE TOTAL
-  // ===============================
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -173,6 +158,11 @@ const EditBill = () => {
     }
   };
 
+  // Filtered products
+  const filteredProducts = products.filter((product) =>
+    product.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" fontWeight="bold" mb={2}>
@@ -189,7 +179,6 @@ const EditBill = () => {
               setBill({ ...bill, customerName: e.target.value })
             }
           />
-
           <TextField
             label="Mobile"
             value={bill.customerMobile}
@@ -197,7 +186,6 @@ const EditBill = () => {
               setBill({ ...bill, customerMobile: e.target.value })
             }
           />
-
           <TextField
             label="Address"
             value={bill.customerAddress}
@@ -207,50 +195,14 @@ const EditBill = () => {
           />
         </Box>
 
-        {/* ADD PRODUCT SECTION */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" mb={1}>
-            Add Product
-          </Typography>
-
-          <TextField
-            fullWidth
-            placeholder="Search product..."
-            value={search}
-            onChange={(e) =>
-              handleSearch(e.target.value)
-            }
-          />
-
-          {search && (
-            <Paper
-              sx={{
-                maxHeight: 200,
-                overflow: "auto",
-                mt: 1,
-              }}
-            >
-              {filteredProducts.map((product) => (
-                <Box
-                  key={product._id}
-                  sx={{
-                    p: 1,
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: "#f5f5f5",
-                    },
-                  }}
-                  onClick={() =>
-                    addProductToBill(product)
-                  }
-                >
-                  {product.title} - ₹{product.price} 
-                  (Stock: {product.stock})
-                </Box>
-              ))}
-            </Paper>
-          )}
-        </Box>
+        {/* ADD PRODUCT BUTTON */}
+        <Button
+          variant="outlined"
+          sx={{ mb: 2 }}
+          onClick={() => setOpenProductDialog(true)}
+        >
+          Add Product
+        </Button>
 
         {/* ITEMS TABLE */}
         <Table size="small">
@@ -267,12 +219,8 @@ const EditBill = () => {
           <TableBody>
             {items.map((item, i) => (
               <TableRow key={i}>
-                <TableCell>
-                  {item.productId?.title}
-                </TableCell>
-                <TableCell>
-                  ₹{item.price}
-                </TableCell>
+                <TableCell>{item.productId?.title}</TableCell>
+                <TableCell>₹{item.price}</TableCell>
                 <TableCell>
                   <TextField
                     size="small"
@@ -290,9 +238,7 @@ const EditBill = () => {
                 <TableCell>
                   <IconButton
                     color="error"
-                    onClick={() =>
-                      removeItem(i)
-                    }
+                    onClick={() => removeItem(i)}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -304,9 +250,7 @@ const EditBill = () => {
 
         {/* PAYMENT */}
         <Box sx={{ mt: 3 }}>
-          <Typography>
-            Total: ₹{totalAmount}
-          </Typography>
+          <Typography>Total: ₹{totalAmount}</Typography>
 
           <TextField
             label="Paid Amount"
@@ -319,15 +263,10 @@ const EditBill = () => {
           />
         </Box>
 
-        {/* ACTIONS */}
         <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={handleUpdate}
-          >
+          <Button variant="contained" onClick={handleUpdate}>
             Update Bill
           </Button>
-
           <Button
             variant="outlined"
             onClick={() =>
@@ -338,6 +277,71 @@ const EditBill = () => {
           </Button>
         </Box>
       </Paper>
+
+      {/* PRODUCT DIALOG */}
+      <Dialog
+        open={openProductDialog}
+        onClose={() => setOpenProductDialog(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Select Product</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            placeholder="Search product..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            sx={{ mb: 2 }}
+          />
+
+          {filteredProducts.map((product) => (
+            <Paper
+              key={product._id}
+              sx={{
+                p: 2,
+                mb: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Box>
+                <Typography>
+                  {product.title}
+                </Typography>
+                <Typography variant="body2">
+                  ₹{product.price} | Stock:{" "}
+                  {product.stock}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  type="number"
+                  size="small"
+                  value={selectedQty}
+                  onChange={(e) =>
+                    setSelectedQty(Number(e.target.value))
+                  }
+                  sx={{ width: 70 }}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() =>
+                    handleAddProduct(product)
+                  }
+                >
+                  Add
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
