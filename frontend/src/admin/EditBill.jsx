@@ -11,6 +11,7 @@ import {
   TableCell,
   TableBody,
   IconButton,
+  Autocomplete,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import API from "../api/api";
@@ -26,16 +27,19 @@ const EditBill = () => {
   const [bill, setBill] = useState(null);
   const [items, setItems] = useState([]);
   const [paidAmount, setPaidAmount] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [newQty, setNewQty] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Fetch bill
+  // 🔹 Fetch Bill
   useEffect(() => {
     API.get(`/billing/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(({ data }) => {
         setBill(data);
-        setItems(data.items);
+        setItems(data.items || []);
         setPaidAmount(data.paidAmount || 0);
         setLoading(false);
       })
@@ -45,31 +49,65 @@ const EditBill = () => {
       });
   }, [id, token, navigate]);
 
-  if (loading) return null;
+  // 🔹 Fetch Products
+  useEffect(() => {
+    API.get("/products", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(({ data }) => setProducts(data))
+      .catch(() => toast.error("Failed to load products"));
+  }, [token]);
 
-  // Keeping this if needed later
-  const isFullyPaid = bill.pendingAmount === 0;
+  if (loading || !bill) return null;
 
-  // 🔹 Quantity change
+  // 🔹 Update Quantity
   const updateQty = (index, value) => {
     const updated = [...items];
     updated[index].quantity = Number(value);
     setItems(updated);
   };
 
-  // 🔹 Remove item
+  // 🔹 Remove Item
   const removeItem = (index) => {
     const updated = items.filter((_, i) => i !== index);
     setItems(updated);
   };
 
-  // 🔹 Calculate total
+  // 🔹 Add Product
+  const addProduct = () => {
+    if (!selectedProduct) return toast.error("Select product");
+    if (newQty <= 0) return toast.error("Quantity must be greater than 0");
+
+    const existingIndex = items.findIndex(
+      (item) => item.productId?._id === selectedProduct._id
+    );
+
+    if (existingIndex !== -1) {
+      const updated = [...items];
+      updated[existingIndex].quantity += newQty;
+      setItems(updated);
+    } else {
+      setItems([
+        ...items,
+        {
+          productId: selectedProduct,
+          price: selectedProduct.price,
+          quantity: newQty,
+        },
+      ]);
+    }
+
+    setSelectedProduct(null);
+    setNewQty(1);
+  };
+
+  // 🔹 Calculate Total
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  // 🔹 Submit update (NO RESTRICTION)
+  // 🔹 Update Bill
   const handleUpdate = async () => {
     try {
       await API.put(
@@ -128,6 +166,36 @@ const EditBill = () => {
           />
         </Box>
 
+        {/* ADD PRODUCT WITH SEARCH */}
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <Autocomplete
+            options={products}
+            getOptionLabel={(option) =>
+              `${option.title} (₹${option.price})`
+            }
+            value={selectedProduct}
+            onChange={(event, newValue) => {
+              setSelectedProduct(newValue);
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="Search Product" />
+            )}
+            sx={{ minWidth: 300 }}
+          />
+
+          <TextField
+            type="number"
+            label="Qty"
+            value={newQty}
+            onChange={(e) => setNewQty(Number(e.target.value))}
+            sx={{ width: 100 }}
+          />
+
+          <Button variant="contained" onClick={addProduct}>
+            Add Product
+          </Button>
+        </Box>
+
         {/* ITEMS TABLE */}
         <Table size="small">
           <TableHead>
@@ -172,23 +240,22 @@ const EditBill = () => {
 
         {/* PAYMENT */}
         <Box sx={{ mt: 3 }}>
-          <Typography>Total: ₹{totalAmount}</Typography>
+          <Typography variant="h6">
+            Total: ₹{totalAmount}
+          </Typography>
 
           <TextField
             label="Paid Amount"
             type="number"
             value={paidAmount}
             onChange={(e) => setPaidAmount(Number(e.target.value))}
-            sx={{ mt: 1 }}
+            sx={{ mt: 2 }}
           />
         </Box>
 
         {/* ACTIONS */}
         <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={handleUpdate}
-          >
+          <Button variant="contained" onClick={handleUpdate}>
             Update Bill
           </Button>
 
