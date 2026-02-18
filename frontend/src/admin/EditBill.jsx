@@ -33,6 +33,7 @@ const EditBill = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [newQty, setNewQty] = useState(1);
+  const [newPrice, setNewPrice] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
 
   // ===============================
@@ -73,7 +74,7 @@ const EditBill = () => {
   if (loading || !bill) return null;
 
   // ===============================
-  // HANDLE SEARCH
+  // SEARCH PRODUCT
   // ===============================
   const handleSearch = (value) => {
     setSearch(value);
@@ -92,11 +93,12 @@ const EditBill = () => {
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
     setSearch(product.title);
+    setNewPrice(product.price);
     setShowDropdown(false);
   };
 
   // ===============================
-  // ADD PRODUCT WITH QTY
+  // ADD PRODUCT
   // ===============================
   const handleAddProduct = () => {
     if (!selectedProduct) {
@@ -129,8 +131,8 @@ const EditBill = () => {
         _id: selectedProduct._id,
         title: selectedProduct.title,
       },
-      price: selectedProduct.price,
-      quantity: newQty,
+      price: Number(newPrice),
+      quantity: Number(newQty),
     };
 
     setItems([...items, newItem]);
@@ -139,14 +141,24 @@ const EditBill = () => {
     setSelectedProduct(null);
     setSearch("");
     setNewQty(1);
+    setNewPrice(0);
   };
 
   // ===============================
-  // UPDATE QTY IN TABLE
+  // UPDATE QTY
   // ===============================
   const updateQty = (index, value) => {
     const updated = [...items];
     updated[index].quantity = Number(value);
+    setItems(updated);
+  };
+
+  // ===============================
+  // UPDATE PRICE
+  // ===============================
+  const updatePrice = (index, value) => {
+    const updated = [...items];
+    updated[index].price = Number(value);
     setItems(updated);
   };
 
@@ -241,7 +253,7 @@ const EditBill = () => {
                         handleSelectProduct(product)
                       }
                     >
-                      {product.title} - ₹{product.price} 
+                      {product.title} - ₹{product.price}
                       (Stock: {product.stock})
                     </Box>
                   ))}
@@ -257,6 +269,16 @@ const EditBill = () => {
                 setNewQty(Number(e.target.value))
               }
               sx={{ width: 100 }}
+            />
+
+            <TextField
+              type="number"
+              label="Price"
+              value={newPrice}
+              onChange={(e) =>
+                setNewPrice(Number(e.target.value))
+              }
+              sx={{ width: 120 }}
             />
 
             <Button
@@ -286,9 +308,19 @@ const EditBill = () => {
                 <TableCell>
                   {item.productId?.title}
                 </TableCell>
+
                 <TableCell>
-                  ₹{item.price}
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={item.price}
+                    onChange={(e) =>
+                      updatePrice(i, e.target.value)
+                    }
+                    sx={{ width: 100 }}
+                  />
                 </TableCell>
+
                 <TableCell>
                   <TextField
                     size="small"
@@ -300,9 +332,11 @@ const EditBill = () => {
                     sx={{ width: 80 }}
                   />
                 </TableCell>
+
                 <TableCell>
                   ₹{item.price * item.quantity}
                 </TableCell>
+
                 <TableCell>
                   <IconButton
                     color="error"
