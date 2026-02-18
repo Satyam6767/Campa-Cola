@@ -56,7 +56,7 @@ const EditBill = () => {
   // FETCH PRODUCTS
   // ===============================
   useEffect(() => {
-    API.get("/products/all", {
+    API.get("/products", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(({ data }) => {
