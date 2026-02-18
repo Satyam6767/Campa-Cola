@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import {
   Box,
   Typography,
@@ -22,6 +22,7 @@ const EditBill = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
   const [bill, setBill] = useState(null);
   const [items, setItems] = useState([]);
@@ -35,6 +36,26 @@ const EditBill = () => {
   const [newQty, setNewQty] = useState(1);
   const [newPrice, setNewPrice] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // ===============================
+  // CLOSE DROPDOWN ON OUTSIDE CLICK
+  // ===============================
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // ===============================
   // FETCH BILL
@@ -137,7 +158,7 @@ const EditBill = () => {
 
     setItems([...items, newItem]);
 
-    // reset
+    // reset fields
     setSelectedProduct(null);
     setSearch("");
     setNewQty(1);
@@ -218,12 +239,18 @@ const EditBill = () => {
           </Typography>
 
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Box sx={{ flex: 1, position: "relative" }}>
+            <Box
+              ref={dropdownRef}
+              sx={{ flex: 1, position: "relative" }}
+            >
               <TextField
                 fullWidth
                 label="Search Product"
                 value={search}
-                onFocus={() => setShowDropdown(true)}
+                onFocus={() => {
+                  setShowDropdown(true);
+                  setFilteredProducts(products);
+                }}
                 onChange={(e) =>
                   handleSearch(e.target.value)
                 }
