@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem,
   Tooltip,
+  CircularProgress
 } from "@mui/material";
 import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
@@ -33,6 +34,7 @@ const BillingHistory = () => {
   const [bills, setBills] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true); // 🔥 added
 
   const [dateFilter, setDateFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -42,17 +44,19 @@ const BillingHistory = () => {
 
   const fetchBills = async () => {
     try {
+      setLoading(true); // 🔥 added
+
       const { data } = await API.get("/billing/all", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const sorted = data.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
+      // 🔥 removed frontend sorting (backend already sorts)
+      setBills(data);
 
-      setBills(sorted);
     } catch {
       toast.error("Failed to fetch bills");
+    } finally {
+      setLoading(false); // 🔥 added
     }
   };
 
@@ -66,8 +70,12 @@ const BillingHistory = () => {
       await API.delete(`/billing/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       toast.success("Bill Deleted!");
-      fetchBills();
+
+      // 🔥 instant UI update instead of refetch
+      setBills(prev => prev.filter(bill => bill._id !== id));
+
     } catch {
       toast.error("Delete failed");
     }
@@ -186,96 +194,95 @@ const BillingHistory = () => {
 
       {/* TABLE */}
       <Paper sx={{ p: 1.5, borderRadius: "8px" }}>
-        <Table size="small">
-          <TableHead sx={{ backgroundColor: "#1976d2" }}>
-            <TableRow>
-              {["Customer", "Mobile", "Amount", "Date", "Actions"].map((h) => (
-                <TableCell
-                  key={h}
-                  sx={{ color: "#fff", fontSize: 13, fontWeight: "bold" }}
-                >
-                  {h}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {filteredBills
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((bill) => {
-                const isFullyPaid = bill.pendingAmount === 0;
-
-                return (
-                  <TableRow key={bill._id}>
-                    <TableCell>{bill.customerName}</TableCell>
-                    <TableCell>{bill.customerMobile}</TableCell>
-                    <TableCell>₹{bill.totalAmount}</TableCell>
-                    <TableCell>
-                      {new Date(bill.createdAt).toLocaleString("en-IN")}
+        {loading ? (   // 🔥 loading indicator
+          <Box display="flex" justifyContent="center" py={5}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <Table size="small">
+              <TableHead sx={{ backgroundColor: "#1976d2" }}>
+                <TableRow>
+                  {["Customer", "Mobile", "Amount", "Date", "Actions"].map((h) => (
+                    <TableCell
+                      key={h}
+                      sx={{ color: "#fff", fontSize: 13, fontWeight: "bold" }}
+                    >
+                      {h}
                     </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
 
-                    <TableCell>
-                      <IconButton size="small" disabled>
-                        {renderPaymentIcon(bill)}
-                      </IconButton>
+              <TableBody>
+                {filteredBills
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((bill) => {
+                    const isFullyPaid = bill.pendingAmount === 0;
 
-                      <Tooltip title="Print Invoice">
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            navigate(`/admin/invoice/${bill._id}`)
-                          }
-                        >
-                          <PrintIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                    return (
+                      <TableRow key={bill._id}>
+                        <TableCell>{bill.customerName}</TableCell>
+                        <TableCell>{bill.customerMobile}</TableCell>
+                        <TableCell>₹{bill.totalAmount}</TableCell>
+                        <TableCell>
+                          {new Date(bill.createdAt).toLocaleString("en-IN")}
+                        </TableCell>
 
-                      {/* EDIT BUTTON ENABLED */}
-                      <Tooltip
-                        title={
-                          isFullyPaid
-                            ? "Fully paid bill (Editing Allowed)"
-                            : "Edit Bill"
-                        }
-                      >
-                        <span>
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() =>
-                              navigate(`/admin/billing/edit/${bill._id}`)
-                            }
-                          >
-                            <EditIcon fontSize="small" />
+                        <TableCell>
+                          <IconButton size="small" disabled>
+                            {renderPaymentIcon(bill)}
                           </IconButton>
-                        </span>
-                      </Tooltip>
 
-                      <Tooltip title="Delete Bill">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => deleteBill(bill._id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
+                          <Tooltip title="Print Invoice">
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                navigate(`/admin/invoice/${bill._id}`)
+                              }
+                            >
+                              <PrintIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
 
-        <TablePagination
-          component="div"
-          count={filteredBills.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[10]}
-        />
+                          <Tooltip title="Edit Bill">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() =>
+                                navigate(`/admin/billing/edit/${bill._id}`)
+                              }
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Delete Bill">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => deleteBill(bill._id)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+
+            <TablePagination
+              component="div"
+              count={filteredBills.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[10]}
+            />
+          </>
+        )}
       </Paper>
     </Box>
   );
