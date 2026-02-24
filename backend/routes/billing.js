@@ -104,14 +104,29 @@ router.post("/create", auth("admin"), async (req, res) => {
 // ======================================================
 // GET ALL BILLS
 // ======================================================
+// ======================================================
+// GET ALL BILLS (SERVER SIDE PAGINATION)
+// ======================================================
 router.get("/all", auth("admin"), async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
     const bills = await Bill.find()
       .sort({ createdAt: -1 })
-      .limit(100)   // 🔥 prevents huge data load
-      .lean();      // 🔥 makes query much faster
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    res.json(bills);
+    const total = await Bill.countDocuments();
+
+    res.json({
+      bills,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

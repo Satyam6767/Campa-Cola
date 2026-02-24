@@ -34,7 +34,8 @@ const BillingHistory = () => {
   const [bills, setBills] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true); // 🔥 added
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const [dateFilter, setDateFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -42,27 +43,33 @@ const BillingHistory = () => {
   const rowsPerPage = 10;
   const navigate = useNavigate();
 
-  const fetchBills = async () => {
+  // =========================
+  // FETCH BILLS (SERVER SIDE)
+  // =========================
+  const fetchBills = async (pageNumber = 0) => {
     try {
-      setLoading(true); // 🔥 added
+      setLoading(true);
 
-      const { data } = await API.get("/billing/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data } = await API.get(
+        `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      // 🔥 removed frontend sorting (backend already sorts)
-      setBills(data);
+      setBills(data.bills);
+      setTotalCount(data.total);
 
     } catch {
       toast.error("Failed to fetch bills");
     } finally {
-      setLoading(false); // 🔥 added
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBills();
-  }, []);
+    fetchBills(page);
+  }, [page]);
 
   const deleteBill = async (id) => {
     if (!window.confirm("Delete this bill?")) return;
@@ -73,8 +80,7 @@ const BillingHistory = () => {
 
       toast.success("Bill Deleted!");
 
-      // 🔥 instant UI update instead of refetch
-      setBills(prev => prev.filter(bill => bill._id !== id));
+      fetchBills(page); // refetch current page
 
     } catch {
       toast.error("Delete failed");
@@ -111,6 +117,7 @@ const BillingHistory = () => {
     );
   };
 
+  // 🔎 Keep your filtering logic
   const filteredBills = bills.filter((bill) => {
     const name = bill.customerName?.toLowerCase() || "";
     const mobile = bill.customerMobile || "";
@@ -194,7 +201,7 @@ const BillingHistory = () => {
 
       {/* TABLE */}
       <Paper sx={{ p: 1.5, borderRadius: "8px" }}>
-        {loading ? (   // 🔥 loading indicator
+        {loading ? (
           <Box display="flex" justifyContent="center" py={5}>
             <CircularProgress />
           </Box>
@@ -215,67 +222,61 @@ const BillingHistory = () => {
               </TableHead>
 
               <TableBody>
-                {filteredBills
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((bill) => {
-                    const isFullyPaid = bill.pendingAmount === 0;
+                {filteredBills.map((bill) => (
+                  <TableRow key={bill._id}>
+                    <TableCell>{bill.customerName}</TableCell>
+                    <TableCell>{bill.customerMobile}</TableCell>
+                    <TableCell>₹{bill.totalAmount}</TableCell>
+                    <TableCell>
+                      {new Date(bill.createdAt).toLocaleString("en-IN")}
+                    </TableCell>
 
-                    return (
-                      <TableRow key={bill._id}>
-                        <TableCell>{bill.customerName}</TableCell>
-                        <TableCell>{bill.customerMobile}</TableCell>
-                        <TableCell>₹{bill.totalAmount}</TableCell>
-                        <TableCell>
-                          {new Date(bill.createdAt).toLocaleString("en-IN")}
-                        </TableCell>
+                    <TableCell>
+                      <IconButton size="small" disabled>
+                        {renderPaymentIcon(bill)}
+                      </IconButton>
 
-                        <TableCell>
-                          <IconButton size="small" disabled>
-                            {renderPaymentIcon(bill)}
-                          </IconButton>
+                      <Tooltip title="Print Invoice">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigate(`/admin/invoice/${bill._id}`)
+                          }
+                        >
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
 
-                          <Tooltip title="Print Invoice">
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                navigate(`/admin/invoice/${bill._id}`)
-                              }
-                            >
-                              <PrintIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                      <Tooltip title="Edit Bill">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() =>
+                            navigate(`/admin/billing/edit/${bill._id}`)
+                          }
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
 
-                          <Tooltip title="Edit Bill">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() =>
-                                navigate(`/admin/billing/edit/${bill._id}`)
-                              }
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-
-                          <Tooltip title="Delete Bill">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => deleteBill(bill._id)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      <Tooltip title="Delete Bill">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => deleteBill(bill._id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
 
             <TablePagination
               component="div"
-              count={filteredBills.length}
+              count={totalCount}
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
