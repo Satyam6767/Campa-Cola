@@ -108,7 +108,8 @@ router.get("/all", auth("admin"), async (req, res) => {
   try {
     const bills = await Bill.find()
       .sort({ createdAt: -1 })
-      .populate("items.productId");
+      .limit(100)   // 🔥 prevents huge data load
+      .lean();      // 🔥 makes query much faster
 
     res.json(bills);
   } catch (error) {

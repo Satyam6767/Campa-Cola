@@ -16,7 +16,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       const res = await axios.post(
-        "https://campa-cola.onrender.com/api/cart/add",
+        "https://campa-cola-1.onrender.com/api/cart/add",
         {
           productId: product._id,
           quantity: quantity,
@@ -45,7 +45,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       const res = await axios.get(
-        "https://campa-cola.onrender.com/api/cart",
+        "https://campa-cola-1.onrender.com/api/cart",
         {
           headers: {
             Authorization: `Bearer ${token}`,
