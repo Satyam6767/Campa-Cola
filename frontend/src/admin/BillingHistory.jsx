@@ -31,7 +31,7 @@ import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 const BillingHistory = () => {
   const { token } = useContext(AuthContext);
 
-  const [bills, setBills] = useState([]);
+  const [bills, setBills] = useState([]); // always array
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -44,23 +44,32 @@ const BillingHistory = () => {
   const navigate = useNavigate();
 
   // =========================
-  // FETCH BILLS (SERVER SIDE)
+  // FETCH BILLS
   // =========================
   const fetchBills = async (pageNumber = 0) => {
     try {
       setLoading(true);
 
-      const { data } = await API.get(
+      const response = await API.get(
         `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      setBills(data.bills);
-      setTotalCount(data.total);
+      // 🔥 SAFE DATA HANDLING
+      if (response.data && Array.isArray(response.data.bills)) {
+        setBills(response.data.bills);
+        setTotalCount(response.data.total || 0);
+      } else {
+        setBills([]);
+        setTotalCount(0);
+      }
 
-    } catch {
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      setBills([]);
+      setTotalCount(0);
       toast.error("Failed to fetch bills");
     } finally {
       setLoading(false);
@@ -71,18 +80,22 @@ const BillingHistory = () => {
     fetchBills(page);
   }, [page]);
 
+  // =========================
+  // DELETE BILL
+  // =========================
   const deleteBill = async (id) => {
     if (!window.confirm("Delete this bill?")) return;
+
     try {
       await API.delete(`/billing/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("Bill Deleted!");
+      fetchBills(page);
 
-      fetchBills(page); // refetch current page
-
-    } catch {
+    } catch (error) {
+      console.error("Delete Error:", error);
       toast.error("Delete failed");
     }
   };
@@ -117,35 +130,39 @@ const BillingHistory = () => {
     );
   };
 
-  // 🔎 Keep your filtering logic
-  const filteredBills = bills.filter((bill) => {
-    const name = bill.customerName?.toLowerCase() || "";
-    const mobile = bill.customerMobile || "";
-    const createdAt = new Date(bill.createdAt);
-    const now = new Date();
+  // =========================
+  // SAFE FILTERING
+  // =========================
+  const filteredBills = Array.isArray(bills)
+    ? bills.filter((bill) => {
+        const name = bill.customerName?.toLowerCase() || "";
+        const mobile = bill.customerMobile || "";
+        const createdAt = new Date(bill.createdAt);
+        const now = new Date();
 
-    const searchMatch =
-      name.includes(search.toLowerCase()) || mobile.includes(search);
+        const searchMatch =
+          name.includes(search.toLowerCase()) || mobile.includes(search);
 
-    let paymentMatch = true;
-    if (paymentFilter === "Paid") paymentMatch = bill.pendingAmount === 0;
-    if (paymentFilter === "Unpaid") paymentMatch = bill.paidAmount === 0;
-    if (paymentFilter === "Partial")
-      paymentMatch = bill.paidAmount > 0 && bill.pendingAmount > 0;
+        let paymentMatch = true;
+        if (paymentFilter === "Paid") paymentMatch = bill.pendingAmount === 0;
+        if (paymentFilter === "Unpaid") paymentMatch = bill.paidAmount === 0;
+        if (paymentFilter === "Partial")
+          paymentMatch = bill.paidAmount > 0 && bill.pendingAmount > 0;
 
-    let dateMatch = true;
-    if (dateFilter === "today") {
-      dateMatch = createdAt.toDateString() === now.toDateString();
-    }
-    if (dateFilter === "7days") {
-      dateMatch = (now - createdAt) / 86400000 <= 7;
-    }
-    if (dateFilter === "30days") {
-      dateMatch = (now - createdAt) / 86400000 <= 30;
-    }
+        let dateMatch = true;
+        if (dateFilter === "today") {
+          dateMatch = createdAt.toDateString() === now.toDateString();
+        }
+        if (dateFilter === "7days") {
+          dateMatch = (now - createdAt) / 86400000 <= 7;
+        }
+        if (dateFilter === "30days") {
+          dateMatch = (now - createdAt) / 86400000 <= 30;
+        }
 
-    return searchMatch && paymentMatch && dateMatch;
-  });
+        return searchMatch && paymentMatch && dateMatch;
+      })
+    : [];
 
   return (
     <Box sx={{ p: 1 }}>
