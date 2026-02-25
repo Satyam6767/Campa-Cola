@@ -42,7 +42,7 @@ const Billing = () => {
   const [selectedMap, setSelectedMap] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [paymentStatus, setPaymentStatus] = useState("Paid");
+  const [paymentStatus, setPaymentStatus] = useState("Unpaid");
   const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
 
@@ -61,10 +61,11 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
-  // FILTERED PRODUCTS (Search)
+  // ✅ SEARCH BY TITLE + PRICE
   const filteredProducts = useMemo(() => {
     return products.filter((p) =>
-      p.title.toLowerCase().includes(searchTerm.toLowerCase())
+      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(p.price).includes(searchTerm)
     );
   }, [products, searchTerm]);
 
@@ -80,6 +81,24 @@ const Billing = () => {
 
     return { totalQty, totalPrice };
   }, [selectedMap]);
+
+  // ✅ OPEN DIALOG WITH PRESELECTED ITEMS
+  const handleOpenDialog = () => {
+    const preSelected = {};
+
+    items.forEach((item) => {
+      const product = products.find((p) => p._id === item.productId);
+      if (product) {
+        preSelected[product._id] = {
+          ...product,
+          quantity: item.quantity,
+        };
+      }
+    });
+
+    setSelectedMap(preSelected);
+    setOpenDialog(true);
+  };
 
   const handleSelect = (product) => {
     setSelectedMap((prev) => {
@@ -130,7 +149,7 @@ const Billing = () => {
         );
 
         if (existingIndex !== -1) {
-          updatedItems[existingIndex].quantity += product.quantity;
+          updatedItems[existingIndex].quantity = product.quantity;
         } else {
           updatedItems.push({
             productId: product._id,
@@ -144,8 +163,6 @@ const Billing = () => {
       return updatedItems;
     });
 
-    setSelectedMap({});
-    setSearchTerm("");
     setOpenDialog(false);
   };
 
@@ -173,6 +190,11 @@ const Billing = () => {
 
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  const totalQuantity = items.reduce(
+    (sum, item) => sum + item.quantity,
     0
   );
 
@@ -216,7 +238,7 @@ const Billing = () => {
       setCustomerAddress("");
       setItems([]);
       setPaidAmount(0);
-      setPaymentStatus("Paid");
+      setPaymentStatus("Unpaid");
       setPaidType("full");
     } catch {
       toast.error("Failed to create bill");
@@ -225,6 +247,7 @@ const Billing = () => {
 
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
+
       {/* HEADER */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Typography fontWeight="bold" fontSize={18}>
@@ -277,7 +300,7 @@ const Billing = () => {
 
       {/* ADD ITEM BUTTON */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Button fullWidth variant="contained" onClick={() => setOpenDialog(true)}>
+        <Button fullWidth variant="contained" onClick={handleOpenDialog}>
           Add Items
         </Button>
       </Paper>
@@ -290,7 +313,7 @@ const Billing = () => {
           <TextField
             fullWidth
             size="small"
-            placeholder="Search product..."
+            placeholder="Search product or price..."
             sx={{ mb: 2 }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -456,12 +479,22 @@ const Billing = () => {
             </>
           )}
 
+          <Box
+  sx={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    mt: 1,
+  }}
+>
+  <Typography fontWeight="bold">
+    Total: ₹{totalAmount}
+  </Typography>
 
-
-          
-          <Typography fontWeight="bold" mt={1}>
-            Total: ₹{totalAmount}
-          </Typography>
+  <Typography fontWeight="bold">
+    Total Items: {totalQuantity}
+  </Typography>
+</Box>
           <Typography color="green">Paid: ₹{finalPaidAmount}</Typography>
           <Typography color="red">Pending: ₹{pendingAmount}</Typography>
 
