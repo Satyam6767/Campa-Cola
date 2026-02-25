@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -17,8 +17,12 @@ import {
   FormControlLabel,
   FormLabel,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Checkbox,
 } from "@mui/material";
-import Autocomplete from "@mui/material/Autocomplete";
 import API from "../api/api";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
@@ -34,10 +38,10 @@ const Billing = () => {
   const [customerMobile, setCustomerMobile] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedMap, setSelectedMap] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // PAYMENT STATES
   const [paymentStatus, setPaymentStatus] = useState("Paid");
   const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
@@ -57,44 +61,94 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
-  // ADD ITEM (MERGE SAME PRODUCT)
-  const handleAddItem = () => {
-    if (!selectedProduct || quantity <= 0)
-      return toast.error("Invalid product or quantity");
+  // FILTERED PRODUCTS (Search)
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) =>
+      p.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
 
-    if (quantity > selectedProduct.stock)
-      return toast.error("Quantity exceeds available stock");
+  // POPUP TOTALS
+  const popupTotals = useMemo(() => {
+    const values = Object.values(selectedMap);
 
-    setItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) => item.productId === selectedProduct._id
-      );
+    const totalQty = values.reduce((sum, p) => sum + p.quantity, 0);
+    const totalPrice = values.reduce(
+      (sum, p) => sum + p.quantity * p.price,
+      0
+    );
 
-      if (existingIndex !== -1) {
-        return prev.map((item, i) =>
-          i === existingIndex
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+    return { totalQty, totalPrice };
+  }, [selectedMap]);
+
+  const handleSelect = (product) => {
+    setSelectedMap((prev) => {
+      const updated = { ...prev };
+
+      if (updated[product._id]) {
+        delete updated[product._id];
+      } else {
+        updated[product._id] = {
+          ...product,
+          quantity: 1,
+        };
       }
 
-      return [
-        ...prev,
-        {
-          productId: selectedProduct._id,
-          name: selectedProduct.title,
-          price: selectedProduct.price,
-          quantity,
-        },
-      ];
+      return updated;
     });
-
-    // RESET
-    setSelectedProduct(null);
-    setQuantity(1);
   };
 
-  // EDIT PRICE
+  const handleDialogQtyChange = (id, qty) => {
+    if (qty <= 0) return;
+
+    setSelectedMap((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        quantity: Number(qty),
+      },
+    }));
+  };
+
+  const handleAddSelected = () => {
+    const selectedProducts = Object.values(selectedMap);
+
+    if (!selectedProducts.length)
+      return toast.error("Select at least one product");
+
+    setItems((prev) => {
+      let updatedItems = [...prev];
+
+      selectedProducts.forEach((product) => {
+        if (product.quantity > product.stock) {
+          toast.error(`Stock exceeded for ${product.title}`);
+          return;
+        }
+
+        const existingIndex = updatedItems.findIndex(
+          (item) => item.productId === product._id
+        );
+
+        if (existingIndex !== -1) {
+          updatedItems[existingIndex].quantity += product.quantity;
+        } else {
+          updatedItems.push({
+            productId: product._id,
+            name: product.title,
+            price: product.price,
+            quantity: product.quantity,
+          });
+        }
+      });
+
+      return updatedItems;
+    });
+
+    setSelectedMap({});
+    setSearchTerm("");
+    setOpenDialog(false);
+  };
+
   const handlePriceChange = (index, newPrice) => {
     setItems((prev) =>
       prev.map((item, i) =>
@@ -103,7 +157,6 @@ const Billing = () => {
     );
   };
 
-  // EDIT QUANTITY
   const handleQuantityChange = (index, newQty) => {
     if (newQty <= 0) return;
 
@@ -114,18 +167,15 @@ const Billing = () => {
     );
   };
 
-  // DELETE ITEM
   const handleDeleteItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // TOTAL
   const totalAmount = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  // PAID & PENDING
   const finalPaidAmount =
     paymentStatus === "Paid"
       ? paidType === "full"
@@ -135,7 +185,6 @@ const Billing = () => {
 
   const pendingAmount = totalAmount - finalPaidAmount;
 
-  // SUBMIT BILL
   const handleSubmitBill = async () => {
     if (!items.length)
       return toast.error("Please add at least one item");
@@ -175,7 +224,7 @@ const Billing = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
+    <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
       {/* HEADER */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Typography fontWeight="bold" fontSize={18}>
@@ -226,55 +275,98 @@ const Billing = () => {
         />
       </Paper>
 
-      {/* ADD ITEMS */}
+      {/* ADD ITEM BUTTON */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography fontWeight="bold" mb={1}>
-          Add Item
-        </Typography>
-
-        {/* 🔍 SEARCH + SELECT (SAME FIELD) */}
-        <Autocomplete
-          size="small"
-          options={products}
-          value={selectedProduct}
-          onChange={(e, newValue) => setSelectedProduct(newValue)}
-          getOptionLabel={(option) =>
-            `${option.title} – ₹${option.price} (Stock: ${option.stock})`
-          }
-          isOptionEqualToValue={(option, value) =>
-            option._id === value._id
-          }
-          getOptionDisabled={(option) => option.stock === 0}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Select / Search Product"
-              placeholder="Type or select product"
-              sx={{ mb: 1 }}
-            />
-          )}
-        />
-
-        <TextField
-          label="Quantity"
-          type="number"
-          size="small"
-          fullWidth
-          sx={{ mb: 1 }}
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-        />
-
-        <Button fullWidth variant="contained" onClick={handleAddItem}>
-          Add to Bill
+        <Button fullWidth variant="contained" onClick={() => setOpenDialog(true)}>
+          Add Items
         </Button>
       </Paper>
 
-      {/* BILL */}
+      {/* DIALOG */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Select Products</DialogTitle>
+
+        <DialogContent>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search product..."
+            sx={{ mb: 2 }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Select</TableCell>
+                <TableCell>Product</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Stock</TableCell>
+                <TableCell>Qty</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {filteredProducts.map((product) => (
+                <TableRow key={product._id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={!!selectedMap[product._id]}
+                      onChange={() => handleSelect(product)}
+                    />
+                  </TableCell>
+
+                  <TableCell>{product.title}</TableCell>
+                  <TableCell>₹{product.price}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
+
+                  <TableCell>
+                    {selectedMap[product._id] && (
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={selectedMap[product._id].quantity}
+                        onChange={(e) =>
+                          handleDialogQtyChange(product._id, e.target.value)
+                        }
+                        sx={{ width: 80 }}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Box sx={{ textAlign: "right" }}>
+            <Typography fontWeight="bold">
+              Total Quantity: {popupTotals.totalQty}
+            </Typography>
+            <Typography fontWeight="bold" color="primary">
+              Total Price: ₹{popupTotals.totalPrice}
+            </Typography>
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleAddSelected}
+            disabled={popupTotals.totalQty === 0}
+          >
+            Add Selected Items
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* BILL TABLE */}
       {items.length > 0 && (
         <Paper sx={{ p: 2 }}>
           <Typography fontWeight="bold">Bill Items</Typography>
-
           <Divider sx={{ my: 1 }} />
 
           <Table size="small">
@@ -284,7 +376,7 @@ const Billing = () => {
                 <TableCell>Qty</TableCell>
                 <TableCell>Price</TableCell>
                 <TableCell>Total</TableCell>
-                <TableCell align="center">Action</TableCell>
+                <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
 
@@ -292,7 +384,6 @@ const Billing = () => {
               {items.map((item, i) => (
                 <TableRow key={i}>
                   <TableCell>{item.name}</TableCell>
-
                   <TableCell>
                     <TextField
                       size="small"
@@ -304,7 +395,6 @@ const Billing = () => {
                       sx={{ width: 70 }}
                     />
                   </TableCell>
-
                   <TableCell>
                     <TextField
                       size="small"
@@ -316,18 +406,9 @@ const Billing = () => {
                       sx={{ width: 80 }}
                     />
                   </TableCell>
-
+                  <TableCell>₹{item.price * item.quantity}</TableCell>
                   <TableCell>
-                    ₹{item.price * item.quantity}
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <Button
-                      size="small"
-                      color="error"
-                      variant="outlined"
-                      onClick={() => handleDeleteItem(i)}
-                    >
+                    <Button color="error" onClick={() => handleDeleteItem(i)}>
                       Delete
                     </Button>
                   </TableCell>
@@ -336,7 +417,6 @@ const Billing = () => {
             </TableBody>
           </Table>
 
-          {/* PAYMENT */}
           <Divider sx={{ my: 2 }} />
 
           <Select
@@ -358,16 +438,8 @@ const Billing = () => {
                 value={paidType}
                 onChange={(e) => setPaidType(e.target.value)}
               >
-                <FormControlLabel
-                  value="full"
-                  control={<Radio />}
-                  label="Full Payment"
-                />
-                <FormControlLabel
-                  value="partial"
-                  control={<Radio />}
-                  label="Partial / Pending"
-                />
+                <FormControlLabel value="full" control={<Radio />} label="Full Payment" />
+                <FormControlLabel value="partial" control={<Radio />} label="Partial / Pending" />
               </RadioGroup>
 
               {paidType === "partial" && (
@@ -378,23 +450,20 @@ const Billing = () => {
                   fullWidth
                   sx={{ mt: 1 }}
                   value={paidAmount}
-                  onChange={(e) =>
-                    setPaidAmount(Number(e.target.value))
-                  }
+                  onChange={(e) => setPaidAmount(Number(e.target.value))}
                 />
               )}
             </>
           )}
 
+
+
+          
           <Typography fontWeight="bold" mt={1}>
             Total: ₹{totalAmount}
           </Typography>
-          <Typography color="green">
-            Paid: ₹{finalPaidAmount}
-          </Typography>
-          <Typography color="red">
-            Pending: ₹{pendingAmount}
-          </Typography>
+          <Typography color="green">Paid: ₹{finalPaidAmount}</Typography>
+          <Typography color="red">Pending: ₹{pendingAmount}</Typography>
 
           <Button
             fullWidth
