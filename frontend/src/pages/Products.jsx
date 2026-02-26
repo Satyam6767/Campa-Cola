@@ -2,7 +2,6 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   Card,
   CardMedia,
   CardContent,
@@ -14,6 +13,13 @@ import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
 import API from "../api/api";
 
+// Swiper
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,9 +28,9 @@ const Products = () => {
   const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
-    API.get("/products")
+    API.get("/products?limit=6")
       .then((res) => {
-        setProducts(res.data);
+        setProducts(res.data.products || res.data);
         setLoading(false);
       })
       .catch((err) => {
@@ -35,9 +41,9 @@ const Products = () => {
 
   return (
     <Box className="products-section">
-      <Container maxWidth="xl">
+      <Container maxWidth={false}>
 
-        {/* SECTION HEADER */}
+        {/* HEADER */}
         <Box className="section-header">
           <Typography className="section-tag">
             CAMPA COLA
@@ -51,16 +57,24 @@ const Products = () => {
         {loading ? (
           <Typography align="center">Loading products...</Typography>
         ) : (
-          <Grid container spacing={2}>
+          <Swiper
+            modules={[Navigation, Pagination]}
+            spaceBetween={20}
+            slidesPerView={6}
+            navigation
+            pagination={{ clickable: true }}
+            loop={true}
+            breakpoints={{
+              0: { slidesPerView: 1 },
+              576: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              992: { slidesPerView: 4 },
+              1200: { slidesPerView: 5 },
+              1400: { slidesPerView: 6 },
+            }}
+          >
             {products.map((product) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                lg={2}     // ✅ 6 products per row on large screens
-                key={product._id}
-              >
+              <SwiperSlide key={product._id}>
                 <Card className="product-card">
 
                   <CardMedia
@@ -80,7 +94,6 @@ const Products = () => {
                       ₹{product.price}
                     </Typography>
 
-                    {/* USER ONLY */}
                     {token && role === "user" && (
                       <Button
                         variant="contained"
@@ -94,9 +107,9 @@ const Products = () => {
                   </CardContent>
 
                 </Card>
-              </Grid>
+              </SwiperSlide>
             ))}
-          </Grid>
+          </Swiper>
         )}
 
       </Container>
