@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit);
 
-    let query = Product.find().sort({ createdAt: -1 });
+    let query = Product.find(); // ✅ No sort (sequence unchanged)
 
     if (limit) {
       query = query.limit(limit);
