@@ -14,10 +14,18 @@ router.post("/", auth("admin"), async (req, res) => {
   }
 });
 
-// Get All Products
+// Get All Products (with optional limit)
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find();
+    const limit = parseInt(req.query.limit);
+
+    let query = Product.find().sort({ createdAt: -1 });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+
+    const products = await query;
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: error.message });

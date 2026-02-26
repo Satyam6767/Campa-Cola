@@ -3,9 +3,53 @@
   background-color: #fff;
 }
 
+/* GRID SYSTEM */
+.products-grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* Homepage → 5 columns */
+.home-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Products page → 6 columns */
+.full-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .home-grid,
+  .full-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .home-grid,
+  .full-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-grid,
+  .full-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .home-grid,
+  .full-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
 /* PRODUCT CARD */
 .product-card {
-  height: 100%;
   border-radius: 12px !important;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -16,24 +60,21 @@
   box-shadow: 0 14px 30px rgba(0,0,0,0.12) !important;
 }
 
-/* IMAGE (REDUCED SIZE) */
 .product-image {
-  height: 150px;               /* 🔽 reduced */
+  height: 150px;
   object-fit: contain;
   padding: 12px;
   background: #f9f9f9;
 }
 
-/* CONTENT */
 .product-content {
   padding: 12px !important;
   text-align: center;
 }
 
-/* TEXT */
 .product-name {
   font-family: "Montserrat", sans-serif !important;
-  font-size: 0.95rem !important;   /* 🔽 smaller */
+  font-size: 0.95rem !important;
   font-weight: 700 !important;
   color: var(--campa-blue) !important;
   margin-bottom: 6px;
@@ -46,7 +87,6 @@
   color: var(--campa-red) !important;
 }
 
-/* ADD TO CART */
 .add-to-cart-btn {
   margin-top: 10px !important;
   padding: 6px 0 !important;

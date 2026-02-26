@@ -2,27 +2,30 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   Card,
   CardMedia,
   CardContent,
   Button,
 } from "@mui/material";
 import { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import "../mystyle/Products.css";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
 import API from "../api/api";
 
-const Products = () => {
+const Products = ({ limit, showViewMore }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { token, role } = useContext(AuthContext);
   const { addToCart } = useContext(CartContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    API.get("/products")
+    const url = limit ? `/products?limit=${limit}` : "/products";
+
+    API.get(url)
       .then((res) => {
         setProducts(res.data);
         setLoading(false);
@@ -31,13 +34,12 @@ const Products = () => {
         console.error("Error fetching products:", err);
         setLoading(false);
       });
-  }, []);
+  }, [limit]);
 
   return (
     <Box className="products-section">
       <Container maxWidth="xl">
 
-        {/* SECTION HEADER */}
         <Box className="section-header">
           <Typography className="section-tag">
             CAMPA COLA
@@ -51,18 +53,14 @@ const Products = () => {
         {loading ? (
           <Typography align="center">Loading products...</Typography>
         ) : (
-          <Grid container spacing={2}>
-            {products.map((product) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                lg={2}     // ✅ 6 products per row on large screens
-                key={product._id}
-              >
-                <Card className="product-card">
-
+          <>
+            <Box
+              className={`products-grid ${
+                limit ? "home-grid" : "full-grid"
+              }`}
+            >
+              {products.map((product) => (
+                <Card className="product-card" key={product._id}>
                   <CardMedia
                     component="img"
                     image={product.image}
@@ -80,7 +78,6 @@ const Products = () => {
                       ₹{product.price}
                     </Typography>
 
-                    {/* USER ONLY */}
                     {token && role === "user" && (
                       <Button
                         variant="contained"
@@ -92,11 +89,22 @@ const Products = () => {
                       </Button>
                     )}
                   </CardContent>
-
                 </Card>
-              </Grid>
-            ))}
-          </Grid>
+              ))}
+            </Box>
+
+            {showViewMore && (
+              <Box textAlign="center" mt={4}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => navigate("/products")}
+                >
+                  View More
+                </Button>
+              </Box>
+            )}
+          </>
         )}
 
       </Container>
