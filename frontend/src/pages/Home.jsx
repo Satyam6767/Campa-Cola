@@ -8,7 +8,7 @@ function Home() {
     <div>
       <HeroSection />
       <AboutSection />
-      <Products />
+      <Products limit={15} showViewMore={true} />
     </div>
   )
 }
