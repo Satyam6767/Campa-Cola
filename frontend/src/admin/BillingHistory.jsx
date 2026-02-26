@@ -14,7 +14,7 @@ import {
   Select,
   MenuItem,
   Tooltip,
-  CircularProgress,
+  CircularProgress
 } from "@mui/material";
 import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
@@ -31,7 +31,7 @@ import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 const BillingHistory = () => {
   const { token } = useContext(AuthContext);
 
-  const [bills, setBills] = useState([]);
+  const [bills, setBills] = useState([]); // always array
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -43,20 +43,21 @@ const BillingHistory = () => {
   const rowsPerPage = 10;
   const navigate = useNavigate();
 
-  /* =========================
-     FETCH BILLS
-  ========================= */
+  // =========================
+  // FETCH BILLS
+  // =========================
   const fetchBills = async (pageNumber = 0) => {
     try {
       setLoading(true);
 
       const response = await API.get(
-        `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}&search=${search}&payment=${paymentFilter}&date=${dateFilter}`,
+        `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
+      // 🔥 SAFE DATA HANDLING
       if (response.data && Array.isArray(response.data.bills)) {
         setBills(response.data.bills);
         setTotalCount(response.data.total || 0);
@@ -75,20 +76,13 @@ const BillingHistory = () => {
     }
   };
 
-  /* Fetch when page changes */
   useEffect(() => {
     fetchBills(page);
   }, [page]);
 
-  /* Fetch when filters change */
-  useEffect(() => {
-    setPage(0);
-    fetchBills(0);
-  }, [search, dateFilter, paymentFilter]);
-
-  /* =========================
-     DELETE BILL
-  ========================= */
+  // =========================
+  // DELETE BILL
+  // =========================
   const deleteBill = async (id) => {
     if (!window.confirm("Delete this bill?")) return;
 
@@ -110,9 +104,6 @@ const BillingHistory = () => {
     setPage(newPage);
   };
 
-  /* =========================
-     PAYMENT ICON
-  ========================= */
   const renderPaymentIcon = (bill) => {
     if (bill.pendingAmount === 0) {
       return (
@@ -132,12 +123,46 @@ const BillingHistory = () => {
 
     return (
       <Tooltip
-        title={`Partial | Paid: ₹${bill.paidAmount}, Pending: ₹${bill.pendingAmount}`}
+        title={`Partial Payment | Paid: ₹${bill.paidAmount}, Pending: ₹${bill.pendingAmount}`}
       >
         <HourglassBottomIcon sx={{ color: "#f9a825", fontSize: 18 }} />
       </Tooltip>
     );
   };
+
+  // =========================
+  // SAFE FILTERING
+  // =========================
+  const filteredBills = Array.isArray(bills)
+    ? bills.filter((bill) => {
+        const name = bill.customerName?.toLowerCase() || "";
+        const mobile = bill.customerMobile || "";
+        const createdAt = new Date(bill.createdAt);
+        const now = new Date();
+
+        const searchMatch =
+          name.includes(search.toLowerCase()) || mobile.includes(search);
+
+        let paymentMatch = true;
+        if (paymentFilter === "Paid") paymentMatch = bill.pendingAmount === 0;
+        if (paymentFilter === "Unpaid") paymentMatch = bill.paidAmount === 0;
+        if (paymentFilter === "Partial")
+          paymentMatch = bill.paidAmount > 0 && bill.pendingAmount > 0;
+
+        let dateMatch = true;
+        if (dateFilter === "today") {
+          dateMatch = createdAt.toDateString() === now.toDateString();
+        }
+        if (dateFilter === "7days") {
+          dateMatch = (now - createdAt) / 86400000 <= 7;
+        }
+        if (dateFilter === "30days") {
+          dateMatch = (now - createdAt) / 86400000 <= 30;
+        }
+
+        return searchMatch && paymentMatch && dateMatch;
+      })
+    : [];
 
   return (
     <Box sx={{ p: 1 }}>
@@ -183,7 +208,10 @@ const BillingHistory = () => {
             size="small"
             placeholder="Search name or mobile"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
           />
         </Box>
       </Box>
@@ -211,63 +239,55 @@ const BillingHistory = () => {
               </TableHead>
 
               <TableBody>
-                {bills.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No bills found
+                {filteredBills.map((bill) => (
+                  <TableRow key={bill._id}>
+                    <TableCell>{bill.customerName}</TableCell>
+                    <TableCell>{bill.customerMobile}</TableCell>
+                    <TableCell>₹{bill.totalAmount}</TableCell>
+                    <TableCell>
+                      {new Date(bill.createdAt).toLocaleString("en-IN")}
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton size="small" disabled>
+                        {renderPaymentIcon(bill)}
+                      </IconButton>
+
+                      <Tooltip title="Print Invoice">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigate(`/admin/invoice/${bill._id}`)
+                          }
+                        >
+                          <PrintIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Edit Bill">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() =>
+                            navigate(`/admin/billing/edit/${bill._id}`)
+                          }
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Delete Bill">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => deleteBill(bill._id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  bills.map((bill) => (
-                    <TableRow key={bill._id}>
-                      <TableCell>{bill.customerName}</TableCell>
-                      <TableCell>{bill.customerMobile}</TableCell>
-                      <TableCell>₹{bill.totalAmount}</TableCell>
-                      <TableCell>
-                        {new Date(bill.createdAt).toLocaleString("en-IN")}
-                      </TableCell>
-
-                      <TableCell>
-                        <IconButton size="small" disabled>
-                          {renderPaymentIcon(bill)}
-                        </IconButton>
-
-                        <Tooltip title="Print Invoice">
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              navigate(`/admin/invoice/${bill._id}`)
-                            }
-                          >
-                            <PrintIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-
-                        <Tooltip title="Edit Bill">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() =>
-                              navigate(`/admin/billing/edit/${bill._id}`)
-                            }
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-
-                        <Tooltip title="Delete Bill">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => deleteBill(bill._id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
 
