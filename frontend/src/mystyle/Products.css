@@ -1,60 +1,79 @@
 .products-section {
-  padding: 70px 0;
-  background-color: #fff;
+  padding: 80px 0;
+  background: #f9fafc;
 }
 
-/* PRODUCT CARD */
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+}
+
+.section-title span {
+  color: #e63946;
+}
+
+/* Card */
 .product-card {
-  height: 100%;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: 0.3s ease;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.06);
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 30px rgba(0,0,0,0.12) !important;
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
 }
 
-/* IMAGE (REDUCED SIZE) */
 .product-image {
-  height: 150px;               /* 🔽 reduced */
+  height: 220px;
   object-fit: contain;
-  padding: 12px;
-  background: #f9f9f9;
+  padding: 15px;
+  background: #fff;
 }
 
-/* CONTENT */
 .product-content {
-  padding: 12px !important;
   text-align: center;
 }
 
-/* TEXT */
 .product-name {
-  font-family: "Montserrat", sans-serif !important;
-  font-size: 0.95rem !important;   /* 🔽 smaller */
-  font-weight: 700 !important;
-  color: var(--campa-blue) !important;
-  margin-bottom: 6px;
-}
-
-.product-price {
-  font-family: "Montserrat", sans-serif !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  color: var(--campa-red) !important;
-}
-
-/* ADD TO CART */
-.add-to-cart-btn {
-  margin-top: 10px !important;
-  padding: 6px 0 !important;
-  font-size: 0.8rem !important;
-  background-color: var(--campa-blue) !important;
   font-weight: 600 !important;
 }
 
-.add-to-cart-btn:hover {
-  background-color: #a51218 !important;
+.product-price {
+  color: #e63946;
+  font-weight: bold !important;
+  margin: 10px 0;
+}
+
+.add-btn {
+  border-radius: 25px !important;
+  background: #e63946 !important;
+}
+
+.add-btn:hover {
+  background: #c9182b !important;
+}
+
+/* View More */
+.view-more-container {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.view-more-btn {
+  padding: 10px 30px !important;
+  border-radius: 30px !important;
+  border: 2px solid #e63946 !important;
+  color: #e63946 !important;
+}
+
+.view-more-btn:hover {
+  background: #e63946 !important;
+  color: white !important;
 }
