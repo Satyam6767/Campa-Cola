@@ -6,10 +6,9 @@ const Counter = require("../models/Counter");
 
 const router = express.Router();
 
-
-// ======================================================
-// CREATE BILL
-// ======================================================
+/* ======================================================
+   CREATE BILL
+====================================================== */
 router.post("/create", auth("admin"), async (req, res) => {
   try {
     const {
@@ -18,7 +17,6 @@ router.post("/create", auth("admin"), async (req, res) => {
       customerAddress,
       items,
       paymentMode,
-      paymentStatus,
       paidAmount = 0,
     } = req.body;
 
@@ -32,7 +30,7 @@ router.post("/create", auth("admin"), async (req, res) => {
       return res.status(400).json({ error: "Invalid billing data" });
     }
 
-    // 🔹 1️⃣ Check & Deduct Stock
+    /* 1️⃣ CHECK & DEDUCT STOCK */
     for (let item of items) {
       const product = await Product.findById(item.productId);
 
@@ -50,7 +48,7 @@ router.post("/create", auth("admin"), async (req, res) => {
       await product.save();
     }
 
-    // 🔹 2️⃣ Recalculate Total From Backend
+    /* 2️⃣ RECALCULATE TOTAL */
     const totalAmount = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -63,17 +61,21 @@ router.post("/create", auth("admin"), async (req, res) => {
     }
 
     const pendingAmount = totalAmount - paidAmount;
-    const finalPaymentStatus =
-      pendingAmount === 0 ? "Paid" : "Unpaid";
+    const paymentStatus =
+      pendingAmount === 0
+        ? "Paid"
+        : paidAmount === 0
+        ? "Unpaid"
+        : "Partial";
 
-    // 🔹 3️⃣ Auto Increment Invoice
+    /* 3️⃣ AUTO INCREMENT INVOICE */
     const counter = await Counter.findOneAndUpdate(
       { name: "invoice" },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
 
-    // 🔹 4️⃣ Create Bill
+    /* 4️⃣ CREATE BILL */
     const newBill = new Bill({
       invoiceNumber: counter.seq,
       customerName,
@@ -82,9 +84,9 @@ router.post("/create", auth("admin"), async (req, res) => {
       items,
       totalAmount,
       paymentMode,
-      paymentStatus: finalPaymentStatus,
       paidAmount,
       pendingAmount,
+      paymentStatus,
     });
 
     await newBill.save();
@@ -100,25 +102,71 @@ router.post("/create", auth("admin"), async (req, res) => {
   }
 });
 
-
-// ======================================================
-// GET ALL BILLS
-// ======================================================
-// ======================================================
-// GET ALL BILLS (SERVER SIDE PAGINATION)
-// ======================================================
+/* ======================================================
+   GET ALL BILLS (FILTER + SEARCH + PAGINATION)
+====================================================== */
 router.get("/all", auth("admin"), async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
 
-    const bills = await Bill.find()
+    const search = req.query.search?.trim() || "";
+    const payment = req.query.payment || "all";
+    const date = req.query.date || "all";
+
+    let query = {};
+
+    /* 🔎 SEARCH (NAME OR MOBILE) */
+    if (search) {
+      query.$or = [
+        { customerName: { $regex: search, $options: "i" } },
+        { customerMobile: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    /* 💳 PAYMENT FILTER */
+    if (payment === "Paid") {
+      query.pendingAmount = 0;
+    }
+
+    if (payment === "Unpaid") {
+      query.paidAmount = 0;
+    }
+
+    if (payment === "Partial") {
+      query.paidAmount = { $gt: 0 };
+      query.pendingAmount = { $gt: 0 };
+    }
+
+    /* 📅 DATE FILTER */
+    if (date !== "all") {
+      const now = new Date();
+      let startDate = new Date();
+
+      if (date === "today") {
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      if (date === "7days") {
+        startDate.setDate(now.getDate() - 7);
+      }
+
+      if (date === "30days") {
+        startDate.setDate(now.getDate() - 30);
+      }
+
+      query.createdAt = { $gte: startDate };
+    }
+
+    /* 📊 TOTAL AFTER FILTER */
+    const total = await Bill.countDocuments(query);
+
+    /* 📦 PAGINATED DATA */
+    const bills = await Bill.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
-
-    const total = await Bill.countDocuments();
 
     res.json({
       bills,
@@ -128,33 +176,34 @@ router.get("/all", auth("admin"), async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-
-// ======================================================
-// GET SINGLE BILL
-// ======================================================
+/* ======================================================
+   GET SINGLE BILL
+====================================================== */
 router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id)
-      .populate("items.productId");
+      .populate("items.productId")
+      .lean();
 
     if (!bill) {
       return res.status(404).json({ error: "Bill not found" });
     }
 
     res.json(bill);
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-
-// ======================================================
-// UPDATE BILL (EDIT BILL)
-// ======================================================
+/* ======================================================
+   UPDATE BILL
+====================================================== */
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const {
@@ -166,22 +215,16 @@ router.put("/:id", auth("admin"), async (req, res) => {
       paidAmount = 0,
     } = req.body;
 
-    if (
-      !customerName ||
-      !customerAddress ||
-      !items ||
-      items.length === 0
-    ) {
+    if (!customerName || !customerAddress || !items || items.length === 0) {
       return res.status(400).json({ error: "Invalid billing data" });
     }
 
     const bill = await Bill.findById(req.params.id);
-
     if (!bill) {
       return res.status(404).json({ error: "Bill not found" });
     }
 
-    // 🔹 1️⃣ Restore Old Stock
+    /* RESTORE OLD STOCK */
     for (let oldItem of bill.items) {
       const product = await Product.findById(oldItem.productId);
       if (product) {
@@ -190,7 +233,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       }
     }
 
-    // 🔹 2️⃣ Check & Deduct New Stock
+    /* CHECK & DEDUCT NEW STOCK */
     for (let item of items) {
       const product = await Product.findById(item.productId);
 
@@ -208,7 +251,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       await product.save();
     }
 
-    // 🔹 3️⃣ Recalculate Total
+    /* RECALCULATE TOTAL */
     const totalAmount = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -222,9 +265,12 @@ router.put("/:id", auth("admin"), async (req, res) => {
 
     const pendingAmount = totalAmount - paidAmount;
     const paymentStatus =
-      pendingAmount === 0 ? "Paid" : "Unpaid";
+      pendingAmount === 0
+        ? "Paid"
+        : paidAmount === 0
+        ? "Unpaid"
+        : "Partial";
 
-    // 🔹 4️⃣ Update Bill
     bill.customerName = customerName;
     bill.customerMobile = customerMobile;
     bill.customerAddress = customerAddress;
@@ -248,19 +294,16 @@ router.put("/:id", auth("admin"), async (req, res) => {
   }
 });
 
-
-// ======================================================
-// DELETE BILL (RESTORE STOCK)
-// ======================================================
+/* ======================================================
+   DELETE BILL
+====================================================== */
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id);
-
     if (!bill) {
       return res.status(404).json({ error: "Bill not found" });
     }
 
-    // 🔹 Restore Stock Before Delete
     for (let item of bill.items) {
       const product = await Product.findById(item.productId);
       if (product) {
