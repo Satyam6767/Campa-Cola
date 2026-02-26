@@ -1,12 +1,9 @@
 const express = require("express");
 const Product = require("../models/Product");
 const auth = require("../middleware/auth");
-
 const router = express.Router();
 
-/* ===============================
-   ADD PRODUCT (ADMIN)
-================================ */
+// Add Product (Admin)
 router.post("/", auth("admin"), async (req, res) => {
   try {
     const product = new Product(req.body);
@@ -17,32 +14,17 @@ router.post("/", auth("admin"), async (req, res) => {
   }
 });
 
-/* ===============================
-   GET PRODUCTS (LIMIT SUPPORT)
-================================ */
+// Get All Products
 router.get("/", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 0;
-
-    if (limit === 0) {
-      const products = await Product.find().sort("-createdAt");
-      return res.json(products);
-    }
-
-    const products = await Product.find()
-      .sort("-createdAt")
-      .limit(limit);
-
+    const products = await Product.find();
     res.json(products);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-/* ===============================
-   GET SINGLE PRODUCT
-================================ */
+// Get Single Product
 router.get("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -52,9 +34,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* ===============================
-   DELETE PRODUCT (ADMIN)
-================================ */
+// Delete Product (Admin)
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -64,9 +44,7 @@ router.delete("/:id", auth("admin"), async (req, res) => {
   }
 });
 
-/* ===============================
-   UPDATE PRODUCT (ADMIN)
-================================ */
+// Update Product (Admin)
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
