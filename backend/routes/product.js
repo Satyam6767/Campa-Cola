@@ -1,100 +1,50 @@
 const express = require("express");
 const Product = require("../models/Product");
 const auth = require("../middleware/auth");
-
 const router = express.Router();
 
-/* =========================================
-   ADD PRODUCT (ADMIN)
-========================================= */
+// Add Product (Admin)
 router.post("/", auth("admin"), async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
-
-    res.json({
-      msg: "Product added successfully",
-      product,
-    });
+    res.json({ msg: "Product added successfully", product });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-/* =========================================
-   GET PRODUCTS (WITH PAGINATION SUPPORT)
-========================================= */
+// Get All Products
 router.get("/", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 0; // 0 means return all
-    const sort = req.query.sort || "-createdAt";
-
-    // If no limit provided → return all products (old behavior)
-    if (limit === 0) {
-      const products = await Product.find().sort(sort);
-      return res.json(products);
-    }
-
-    const skip = (page - 1) * limit;
-
-    const total = await Product.countDocuments();
-
-    const products = await Product.find()
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    res.json({
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      products,
-    });
-
+    const products = await Product.find();
+    res.json(products);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-/* =========================================
-   GET SINGLE PRODUCT
-========================================= */
+// Get Single Product
 router.get("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-/* =========================================
-   DELETE PRODUCT (ADMIN)
-========================================= */
+// Delete Product (Admin)
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-
-    res.json({ msg: "Product deleted successfully" });
-
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ msg: "Product deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-/* =========================================
-   UPDATE PRODUCT (ADMIN)
-========================================= */
+// Update Product (Admin)
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
@@ -102,16 +52,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
       req.body,
       { new: true }
     );
-
-    if (!product) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-
-    res.json({
-      msg: "Product updated successfully",
-      product,
-    });
-
+    res.json({ msg: "Product updated", product });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
