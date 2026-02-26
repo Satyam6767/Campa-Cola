@@ -33,6 +33,7 @@ const BillingHistory = () => {
 
   const [bills, setBills] = useState([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(""); // ✅ new state
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -44,6 +45,17 @@ const BillingHistory = () => {
   const navigate = useNavigate();
 
   /* =========================
+     DEBOUNCE LOGIC (500ms)
+  ========================= */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /* =========================
      FETCH BILLS
   ========================= */
   const fetchBills = async (pageNumber = 0) => {
@@ -51,7 +63,7 @@ const BillingHistory = () => {
       setLoading(true);
 
       const response = await API.get(
-        `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}&search=${search}&payment=${paymentFilter}&date=${dateFilter}`,
+        `/billing/all?page=${pageNumber + 1}&limit=${rowsPerPage}&search=${debouncedSearch}&payment=${paymentFilter}&date=${dateFilter}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -80,11 +92,11 @@ const BillingHistory = () => {
     fetchBills(page);
   }, [page]);
 
-  /* Fetch when filters change */
+  /* Fetch when filters OR debounced search change */
   useEffect(() => {
     setPage(0);
     fetchBills(0);
-  }, [search, dateFilter, paymentFilter]);
+  }, [debouncedSearch, dateFilter, paymentFilter]);
 
   /* =========================
      DELETE BILL
