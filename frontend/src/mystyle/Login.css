@@ -1,0 +1,177 @@
+.login-section{
+  min-height:85vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+
+/* BACKGROUND IMAGE */
+.login-section::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  background:url("../assets/login-register-wallpaper.jpg") center/cover no-repeat;
+
+  filter:blur(19px);
+  transform:scale(1.1);
+  z-index:-1;
+}
+
+/* DARK OVERLAY */
+.login-section::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+}
+
+.login-card{
+  display:flex;
+  width:100%;
+  max-width:800px;
+  background:white;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0px 0px 70px rgba(0, 0, 0, 0.25);
+  animation: fadeSlideLeft 0.6s ease-out;
+}
+
+
+.login-logo{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.login-logo img{
+  width:200px;
+  border-radius: 8px;
+}
+/* LEFT SIDE */
+
+.login-left{
+  flex:1;
+  background:var(--campa-blue);
+  color:white;
+  padding:40px 40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.login-brand{
+  font-family: "Poppins", "Segoe UI", sans-serif !important;
+  font-size:0.9rem !important;
+  letter-spacing:4px !important;
+  font-weight:700 !important;
+  color:var(--campa-red) !important;
+  margin-bottom:14px !important;
+  text-transform:uppercase;
+}
+
+.login-desc{
+  font-family:"Inter","Segoe UI",sans-serif !important;
+  margin-bottom:30px !important;
+  line-height:1.6;
+}
+
+/* SOCIAL BUTTONS */
+
+.social-btn{
+  color:white !important;
+  margin-bottom:15px !important;
+}
+
+.facebook{
+  background:#3b5998 !important;
+}
+
+.twitter{
+  background:#1da1f2 !important;
+}
+
+.google{
+  background:#db4437 !important;
+}
+
+/* RIGHT SIDE */
+
+.login-right{
+  flex:1;
+  padding:40px 40px;
+}
+
+.login-title{
+  font-family:"Montserrat","Segoe UI",sans-serif !important;
+  font-size:22px !important;
+  font-weight:700 !important;
+  color:var(--campa-blue) !important;
+  margin-bottom:30px !important;
+}
+
+.login-options{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.remember{
+  display:flex;
+  align-items:center;
+}
+
+.forgot{
+  color:var(--campa-red);
+  cursor:pointer;
+  font-weight:500;
+}
+
+/* LOGIN BUTTON */
+
+.login-btn{
+  padding:12px !important;
+  font-size:16px !important;
+  background:var(--campa-red) !important;
+  font-weight:600 !important;
+  transition:all 0.25s ease;
+}
+
+.login-btn:hover{
+  background:#a51218 !important;
+  transform:translateY(-2px);
+}
+
+/* REGISTER LINK */
+
+.register-link{
+  color:var(--campa-blue);
+  cursor:pointer;
+  font-weight:600;
+}
+
+.register-link:hover{
+  text-decoration:underline;
+}
+
+/* ENTRY ANIMATION */
+
+@keyframes fadeSlideLeft {
+  from {
+    opacity:0;
+    transform:translateX(-20px);
+  }
+  to {
+    opacity:1;
+    transform:translateX(0);
+  }
+}
