@@ -371,7 +371,7 @@ const PrintInvoice = () => {
 
       </Box>
 
-      <Box className="no-print" sx={{ mt: 3, textAlign: "center" }}>
+      <Box className="no-print" sx={{ mt: 3, textAlign: "center", display: "flex", justifyContent: "center", gap: 2 }}>
 
         <Button
   variant="outlined"

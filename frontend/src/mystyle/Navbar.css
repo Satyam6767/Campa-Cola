@@ -73,3 +73,19 @@
 .MuiListItemButton-root:hover {
   background-color: rgba(196, 22, 28, 0.08);
 }
+
+
+
+/* ================= PRINT FIX ================= */
+
+@media print {
+
+  .no-print {
+    display: none !important;
+  }
+
+  .MuiDrawer-root {
+    display: none !important;
+  }
+
+}

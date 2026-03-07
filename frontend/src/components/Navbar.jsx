@@ -45,6 +45,7 @@ const Navbar = () => {
     <>
       {/* ================= NAVBAR ================= */}
       <AppBar
+        className="no-print"
         position="sticky"
         sx={{
           background: "#fff",
@@ -52,9 +53,10 @@ const Navbar = () => {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
+          
           {/* LEFT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {/* MOBILE ONLY HAMBURGER */}
+            
             <IconButton
               sx={{ display: { xs: "flex", sm: "flex", md: "none" } }}
               onClick={() => setMobileOpen(true)}
@@ -63,14 +65,20 @@ const Navbar = () => {
             </IconButton>
 
             <Box sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-              <img src="/final-logo.png" alt="Logo" style={{ width: 150 }} loading="lazy" />
+              <img
+                src="/final-logo.png"
+                alt="Logo"
+                style={{ width: 150 }}
+                loading="lazy"
+              />
             </Box>
           </Box>
 
-          {/* CENTER (DESKTOP + TABLET NAV LINKS) */}
+          {/* CENTER NAV LINKS */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 4 }}>
             {navLinks.map((item) => {
               const active = location.pathname === item.path;
+
               return (
                 <Button
                   key={item.label}
@@ -86,6 +94,7 @@ const Navbar = () => {
 
           {/* RIGHT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            
             {token && (
               <Typography
                 sx={{ display: { xs: "none", md: "block" }, fontWeight: 500 }}
@@ -95,13 +104,12 @@ const Navbar = () => {
             )}
 
             {token && role !== "admin" && (
-  <IconButton component={Link} to="/cart">
-    <Badge badgeContent={cartCount} color="error">
-      <ShoppingCart sx={{ color: "#000" }} />
-    </Badge>
-  </IconButton>
-)}
-
+              <IconButton component={Link} to="/cart">
+                <Badge badgeContent={cartCount} color="error">
+                  <ShoppingCart sx={{ color: "#000" }} />
+                </Badge>
+              </IconButton>
+            )}
 
             {token ? (
               <>
@@ -116,6 +124,7 @@ const Navbar = () => {
                     Dashboard
                   </Button>
                 )}
+
                 <Button
                   variant="outlined"
                   size="small"
@@ -132,16 +141,17 @@ const Navbar = () => {
                   to="/login"
                   variant="outlined"
                   size="small"
-                  className="campa-btn "
+                  className="campa-btn"
                 >
                   Login
                 </Button>
+
                 <Button
                   component={Link}
                   to="/register"
                   variant="contained"
                   size="small"
-                  className="campa-btn contained "
+                  className="campa-btn contained"
                 >
                   Register
                 </Button>
@@ -151,32 +161,8 @@ const Navbar = () => {
         </Toolbar>
       </AppBar>
 
-      {/* ========== TABLET SIDEBAR BUTTON (BELOW NAVBAR) ========== */}
-      <Box
-        sx={{
-          display: {
-            xs: "none",
-            sm: "none",
-            md: "flex",
-            lg: "none",
-          },
-          justifyContent: "center",
-          py: 1,
-          backgroundColor: "#fff",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-        }}
-      >
-        <Button
-          startIcon={<MenuIcon />}
-          variant="outlined"
-          className="campa-btn"
-          onClick={() => setMobileOpen(true)}
-        >
-          Menu
-        </Button>
-      </Box>
+      {/* ================= MOBILE DRAWER ================= */}
 
-      {/* ================= MOBILE / TABLET DRAWER ================= */}
       <Drawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
@@ -215,6 +201,7 @@ const Navbar = () => {
               <ListItemButton component={Link} to="/login">
                 <ListItemText primary="Login" />
               </ListItemButton>
+
               <ListItemButton component={Link} to="/register">
                 <ListItemText primary="Register" />
               </ListItemButton>
