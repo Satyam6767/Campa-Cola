@@ -28,18 +28,6 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const numberInputStyle = {
-  "& input[type=number]": { MozAppearance: "textfield" },
-  "& input[type=number]::-webkit-outer-spin-button": {
-    WebkitAppearance: "none",
-    margin: 0,
-  },
-  "& input[type=number]::-webkit-inner-spin-button": {
-    WebkitAppearance: "none",
-    margin: 0,
-  },
-};
-
 const Billing = () => {
   const { token } = useContext(AuthContext);
 
@@ -60,6 +48,7 @@ const Billing = () => {
 
   const navigate = useNavigate();
 
+  // FETCH PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -72,6 +61,7 @@ const Billing = () => {
     fetchProducts();
   }, []);
 
+  // SEARCH
   const filteredProducts = useMemo(() => {
     return products.filter(
       (p) =>
@@ -80,12 +70,13 @@ const Billing = () => {
     );
   }, [products, searchTerm]);
 
+  // POPUP TOTAL
   const popupTotals = useMemo(() => {
     const values = Object.values(selectedMap);
 
-    const totalQty = values.reduce((sum, p) => sum + (p.quantity || 0), 0);
+    const totalQty = values.reduce((sum, p) => sum + p.quantity, 0);
     const totalPrice = values.reduce(
-      (sum, p) => sum + (p.quantity || 0) * (p.price || 0),
+      (sum, p) => sum + p.quantity * p.price,
       0
     );
 
@@ -127,21 +118,25 @@ const Billing = () => {
   };
 
   const handleDialogQtyChange = (id, qty) => {
+    if (qty <= 0) return;
+
     setSelectedMap((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        quantity: qty === "" ? "" : Number(qty),
+        quantity: Number(qty),
       },
     }));
   };
 
   const handleDialogPriceChange = (id, price) => {
+    if (price <= 0) return;
+
     setSelectedMap((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        price: price === "" ? "" : Number(price),
+        price: Number(price),
       },
     }));
   };
@@ -184,22 +179,20 @@ const Billing = () => {
     setOpenDialog(false);
   };
 
-  const handlePriceChange = (index, price) => {
+  const handlePriceChange = (index, newPrice) => {
     setItems((prev) =>
       prev.map((item, i) =>
-        i === index
-          ? { ...item, price: price === "" ? "" : Number(price) }
-          : item
+        i === index ? { ...item, price: Number(newPrice) } : item
       )
     );
   };
 
-  const handleQuantityChange = (index, qty) => {
+  const handleQuantityChange = (index, newQty) => {
+    if (newQty <= 0) return;
+
     setItems((prev) =>
       prev.map((item, i) =>
-        i === index
-          ? { ...item, quantity: qty === "" ? "" : Number(qty) }
-          : item
+        i === index ? { ...item, quantity: Number(newQty) } : item
       )
     );
   };
@@ -209,12 +202,12 @@ const Billing = () => {
   };
 
   const totalAmount = items.reduce(
-    (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
   const totalQuantity = items.reduce(
-    (sum, item) => sum + (item.quantity || 0),
+    (sum, item) => sum + item.quantity,
     0
   );
 
@@ -268,8 +261,11 @@ const Billing = () => {
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
 
+      {/* HEADER */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Typography fontWeight="bold">Offline Billing</Typography>
+        <Typography fontWeight="bold" fontSize={18}>
+          Offline Billing
+        </Typography>
 
         <Button
           size="small"
@@ -280,8 +276,11 @@ const Billing = () => {
         </Button>
       </Box>
 
+      {/* CUSTOMER */}
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography fontWeight="bold">Customer Details</Typography>
+        <Typography fontWeight="bold" mb={1}>
+          Customer Details (Optional)
+        </Typography>
 
         <TextField
           label="Customer Name"
@@ -312,12 +311,14 @@ const Billing = () => {
         />
       </Paper>
 
+      {/* ADD ITEM */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Button fullWidth variant="contained" onClick={handleOpenDialog}>
           Add Items
         </Button>
       </Paper>
 
+      {/* PRODUCT POPUP */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
 
         <DialogTitle>Select Products</DialogTitle>
@@ -367,7 +368,7 @@ const Billing = () => {
                         onChange={(e) =>
                           handleDialogPriceChange(product._id, e.target.value)
                         }
-                        sx={{ width: 90, ...numberInputStyle }}
+                        sx={{ width: 90 }}
                       />
                     ) : (
                       <>₹{product.price}</>
@@ -385,7 +386,7 @@ const Billing = () => {
                         onChange={(e) =>
                           handleDialogQtyChange(product._id, e.target.value)
                         }
-                        sx={{ width: 80, ...numberInputStyle }}
+                        sx={{ width: 80 }}
                       />
                     )}
                   </TableCell>
@@ -398,31 +399,39 @@ const Billing = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          <Typography fontWeight="bold">
-            Total Qty: {popupTotals.totalQty}
-          </Typography>
+          <Box sx={{ textAlign: "right" }}>
+            <Typography fontWeight="bold">
+              Total Quantity: {popupTotals.totalQty}
+            </Typography>
 
-          <Typography fontWeight="bold">
-            Total Price: ₹{popupTotals.totalPrice}
-          </Typography>
+            <Typography fontWeight="bold" color="primary">
+              Total Price: ₹{popupTotals.totalPrice}
+            </Typography>
+          </Box>
 
         </DialogContent>
 
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+
           <Button
             variant="contained"
             onClick={handleAddSelected}
             disabled={popupTotals.totalQty === 0}
           >
-            Add Selected
+            Add Selected Items
           </Button>
         </DialogActions>
 
       </Dialog>
 
+      {/* BILL TABLE */}
       {items.length > 0 && (
         <Paper sx={{ p: 2 }}>
+
+          <Typography fontWeight="bold">Bill Items</Typography>
+
+          <Divider sx={{ my: 1 }} />
 
           <Table size="small">
 
@@ -450,7 +459,7 @@ const Billing = () => {
                       onChange={(e) =>
                         handleQuantityChange(i, e.target.value)
                       }
-                      sx={{ width: 70, ...numberInputStyle }}
+                      sx={{ width: 70 }}
                     />
                   </TableCell>
 
@@ -462,12 +471,12 @@ const Billing = () => {
                       onChange={(e) =>
                         handlePriceChange(i, e.target.value)
                       }
-                      sx={{ width: 80, ...numberInputStyle }}
+                      sx={{ width: 80 }}
                     />
                   </TableCell>
 
                   <TableCell>
-                    ₹{(item.price || 0) * (item.quantity || 0)}
+                    ₹{item.price * item.quantity}
                   </TableCell>
 
                   <TableCell>
@@ -484,12 +493,66 @@ const Billing = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          <Typography fontWeight="bold">
-            Total: ₹{totalAmount}
+          <Select
+            fullWidth
+            size="small"
+            value={paymentStatus}
+            onChange={(e) => setPaymentStatus(e.target.value)}
+            sx={{ mb: 1 }}
+          >
+            <MenuItem value="Paid">Paid</MenuItem>
+            <MenuItem value="Unpaid">Unpaid</MenuItem>
+          </Select>
+
+          {paymentStatus === "Paid" && (
+            <>
+              <FormLabel>Payment Type</FormLabel>
+
+              <RadioGroup
+                row
+                value={paidType}
+                onChange={(e) => setPaidType(e.target.value)}
+              >
+                <FormControlLabel value="full" control={<Radio />} label="Full Payment" />
+                <FormControlLabel value="partial" control={<Radio />} label="Partial / Pending" />
+              </RadioGroup>
+
+              {paidType === "partial" && (
+                <TextField
+                  label="Paid Amount"
+                  type="number"
+                  size="small"
+                  fullWidth
+                  sx={{ mt: 1 }}
+                  value={paidAmount}
+                  onChange={(e) => setPaidAmount(Number(e.target.value))}
+                />
+              )}
+            </>
+          )}
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mt: 1,
+            }}
+          >
+            <Typography fontWeight="bold">
+              Total: ₹{totalAmount}
+            </Typography>
+
+            <Typography fontWeight="bold">
+              Total Items: {totalQuantity}
+            </Typography>
+          </Box>
+
+          <Typography color="green">
+            Paid: ₹{finalPaidAmount}
           </Typography>
 
-          <Typography fontWeight="bold">
-            Items: {totalQuantity}
+          <Typography color="red">
+            Pending: ₹{pendingAmount}
           </Typography>
 
           <Button
@@ -504,6 +567,7 @@ const Billing = () => {
 
         </Paper>
       )}
+
     </Box>
   );
 };
