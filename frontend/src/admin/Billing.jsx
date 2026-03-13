@@ -76,14 +76,14 @@ const Billing = () => {
 
     const totalQty = values.reduce((sum, p) => sum + p.quantity, 0);
     const totalPrice = values.reduce(
-      (sum, p) => sum + p.quantity * p.price,
+      (sum, p) => sum + p.quantity * (p.price || 0),
       0
     );
 
     return { totalQty, totalPrice };
   }, [selectedMap]);
 
-  // ✅ FIXED FUNCTION
+  // KEEP EDITED PRICE WHEN REOPENING DIALOG
   const handleOpenDialog = () => {
     const preSelected = {};
 
@@ -93,8 +93,8 @@ const Billing = () => {
       if (product) {
         preSelected[product._id] = {
           ...product,
-          price: item.price,       // ✅ keeps edited price
-          quantity: item.quantity, // existing quantity
+          price: item.price,
+          quantity: item.quantity,
         };
       }
     });
@@ -132,8 +132,21 @@ const Billing = () => {
     }));
   };
 
+  // ✅ FIXED PRICE EDITING (POPUP)
   const handleDialogPriceChange = (id, price) => {
-    if (price <= 0) return;
+
+    if (price === "") {
+      setSelectedMap((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          price: "",
+        },
+      }));
+      return;
+    }
+
+    if (Number(price) < 0) return;
 
     setSelectedMap((prev) => ({
       ...prev,
@@ -182,7 +195,20 @@ const Billing = () => {
     setOpenDialog(false);
   };
 
+  // ✅ FIXED PRICE EDITING (TABLE)
   const handlePriceChange = (index, newPrice) => {
+
+    if (newPrice === "") {
+      setItems((prev) =>
+        prev.map((item, i) =>
+          i === index ? { ...item, price: "" } : item
+        )
+      );
+      return;
+    }
+
+    if (Number(newPrice) < 0) return;
+
     setItems((prev) =>
       prev.map((item, i) =>
         i === index ? { ...item, price: Number(newPrice) } : item
@@ -205,7 +231,7 @@ const Billing = () => {
   };
 
   const totalAmount = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item.price || 0) * item.quantity,
     0
   );
 
@@ -264,7 +290,6 @@ const Billing = () => {
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
 
-      {/* HEADER */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Typography fontWeight="bold" fontSize={18}>
           Offline Billing
@@ -321,7 +346,7 @@ const Billing = () => {
         </Button>
       </Paper>
 
-      {/* PRODUCT POPUP */}
+      {/* POPUP */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
 
         <DialogTitle>Select Products</DialogTitle>
@@ -431,9 +456,7 @@ const Billing = () => {
       {/* BILL TABLE */}
       {items.length > 0 && (
         <Paper sx={{ p: 2 }}>
-
           <Typography fontWeight="bold">Bill Items</Typography>
-
           <Divider sx={{ my: 1 }} />
 
           <Table size="small">
@@ -479,7 +502,7 @@ const Billing = () => {
                   </TableCell>
 
                   <TableCell>
-                    ₹{item.price * item.quantity}
+                    ₹{(item.price || 0) * item.quantity}
                   </TableCell>
 
                   <TableCell>
@@ -534,13 +557,7 @@ const Billing = () => {
             </>
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mt: 1,
-            }}
-          >
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
             <Typography fontWeight="bold">
               Total: ₹{totalAmount}
             </Typography>
