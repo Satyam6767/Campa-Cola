@@ -83,15 +83,18 @@ const Billing = () => {
     return { totalQty, totalPrice };
   }, [selectedMap]);
 
+  // ✅ FIXED FUNCTION
   const handleOpenDialog = () => {
     const preSelected = {};
 
     items.forEach((item) => {
       const product = products.find((p) => p._id === item.productId);
+
       if (product) {
         preSelected[product._id] = {
           ...product,
-          quantity: item.quantity,
+          price: item.price,       // ✅ keeps edited price
+          quantity: item.quantity, // existing quantity
         };
       }
     });
