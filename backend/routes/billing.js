@@ -9,7 +9,7 @@ const router = express.Router();
 /* ======================================================
    CREATE BILL
 ====================================================== */
-router.post("/create", auth("admin"), async (req, res) => {
+router.post("/create", auth(["admin"]), async (req, res) => {
   try {
     const {
       customerName,
@@ -22,7 +22,6 @@ router.post("/create", auth("admin"), async (req, res) => {
 
     if (
       !customerName ||
-      !customerMobile ||
       !customerAddress ||
       !items ||
       items.length === 0
@@ -54,17 +53,20 @@ router.post("/create", auth("admin"), async (req, res) => {
       0
     );
 
-    if (paidAmount > totalAmount) {
+    const paid = Number(paidAmount);
+
+    if (paid > totalAmount) {
       return res
         .status(400)
         .json({ error: "Paid amount cannot exceed total amount" });
     }
 
-    const pendingAmount = totalAmount - paidAmount;
+    const pendingAmount = totalAmount - paid;
+
     const paymentStatus =
       pendingAmount === 0
         ? "Paid"
-        : paidAmount === 0
+        : paid === 0
         ? "Unpaid"
         : "Partial";
 
@@ -84,7 +86,7 @@ router.post("/create", auth("admin"), async (req, res) => {
       items,
       totalAmount,
       paymentMode,
-      paidAmount,
+      paidAmount: paid,
       pendingAmount,
       paymentStatus,
     });
@@ -97,7 +99,7 @@ router.post("/create", auth("admin"), async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("CREATE BILL ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -105,7 +107,7 @@ router.post("/create", auth("admin"), async (req, res) => {
 /* ======================================================
    GET ALL BILLS (FILTER + SEARCH + PAGINATION)
 ====================================================== */
-router.get("/all", auth("admin"), async (req, res) => {
+router.get("/all", auth(["admin"]), async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit) || 10, 1);
@@ -127,6 +129,7 @@ router.get("/all", auth("admin"), async (req, res) => {
     /* 💳 PAYMENT FILTER */
     if (payment === "Paid") {
       query.pendingAmount = 0;
+      query.paidAmount = { $gt: 0 };
     }
 
     if (payment === "Unpaid") {
@@ -176,7 +179,7 @@ router.get("/all", auth("admin"), async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("GET ALL BILLS ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -184,7 +187,7 @@ router.get("/all", auth("admin"), async (req, res) => {
 /* ======================================================
    GET SINGLE BILL
 ====================================================== */
-router.get("/:id", auth("admin"), async (req, res) => {
+router.get("/:id", auth(["admin"]), async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id)
       .populate("items.productId")
@@ -197,6 +200,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
     res.json(bill);
 
   } catch (error) {
+    console.error("GET BILL ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -204,7 +208,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
 /* ======================================================
    UPDATE BILL
 ====================================================== */
-router.put("/:id", auth("admin"), async (req, res) => {
+router.put("/:id", auth(["admin"]), async (req, res) => {
   try {
     const {
       customerName,
@@ -257,17 +261,20 @@ router.put("/:id", auth("admin"), async (req, res) => {
       0
     );
 
-    if (paidAmount > totalAmount) {
+    const paid = Number(paidAmount);
+
+    if (paid > totalAmount) {
       return res
         .status(400)
         .json({ error: "Paid amount cannot exceed total amount" });
     }
 
-    const pendingAmount = totalAmount - paidAmount;
+    const pendingAmount = totalAmount - paid;
+
     const paymentStatus =
       pendingAmount === 0
         ? "Paid"
-        : paidAmount === 0
+        : paid === 0
         ? "Unpaid"
         : "Partial";
 
@@ -277,7 +284,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     bill.items = items;
     bill.totalAmount = totalAmount;
     bill.paymentMode = paymentMode;
-    bill.paidAmount = paidAmount;
+    bill.paidAmount = paid;
     bill.pendingAmount = pendingAmount;
     bill.paymentStatus = paymentStatus;
 
@@ -289,7 +296,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE BILL ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -297,7 +304,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
 /* ======================================================
    DELETE BILL
 ====================================================== */
-router.delete("/:id", auth("admin"), async (req, res) => {
+router.delete("/:id", auth(["admin"]), async (req, res) => {
   try {
     const bill = await Bill.findById(req.params.id);
     if (!bill) {
@@ -317,6 +324,7 @@ router.delete("/:id", auth("admin"), async (req, res) => {
     res.json({ message: "Bill deleted successfully" });
 
   } catch (error) {
+    console.error("DELETE BILL ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
