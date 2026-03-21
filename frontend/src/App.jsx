@@ -16,6 +16,7 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
 import Aboutus from "./pages/Aboutus";
+import MasterList from "./admin/MasterList";
 
 // Layout Components
 import Navbar from "./components/Navbar";
@@ -73,6 +74,7 @@ const App = () => {
           <Route path="orders" element={<ManageOrders />} />
           <Route path="billing" element={<Billing />} />
           <Route path="billing-history" element={<BillingHistory />} />
+          <Route path="master-list" element={<MasterList />} />
 
           {/* ✅ PRINT INVOICE */}
           <Route path="invoice/:id" element={<PrintInvoice />} />

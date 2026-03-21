@@ -34,6 +34,7 @@ const AdminLayout = () => {
           { text: "Products", path: "/admin/products" },
           { text: "Orders", path: "/admin/orders" },
           { text: "Billing", path: "/admin/billing" },
+          { text: "Master List", path: "/admin/master-list" }
         ].map((item) => (
           <ListItemButton
             key={item.text}
