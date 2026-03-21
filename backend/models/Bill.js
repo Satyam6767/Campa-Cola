@@ -48,7 +48,7 @@ const billSchema = new mongoose.Schema(
     // ✅ PAYMENT DETAILS
     paymentStatus: {
       type: String,
-      enum: ["Paid", "Unpaid"],
+      enum: ["Paid", "Unpaid", "Partial"], // ✅ FIXED: Added "Partial"
       default: "Unpaid",
     },
 
@@ -63,11 +63,11 @@ const billSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+
     invoiceNumber: {
       type: Number,
       unique: true,
     },
-
 
     paymentMode: {
       type: String,
