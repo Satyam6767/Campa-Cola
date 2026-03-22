@@ -6,16 +6,16 @@ import {
   Box, Grid, Paper, Typography, Button, Chip,
   Table, TableHead, TableRow, TableCell, TableBody,
   Avatar, CircularProgress, Divider, LinearProgress,
+  useMediaQuery, useTheme,
 } from "@mui/material";
 import {
-  CurrencyRupee, Receipt, Inventory, People,
+  CurrencyRupee, Receipt, Inventory,
   Warning, TrendingUp, ShoppingCart, AddCircle,
-  Category, ListAlt,
+  Category, ListAlt, People,
 } from "@mui/icons-material";
 
-/* ── theme ── */
-const BLUE = "#0B2A4A";
-const RED  = "#C4161C";
+const BLUE  = "#0B2A4A";
+const RED   = "#C4161C";
 const LIGHT = "#f4f6f9";
 
 /* ======================================================
@@ -25,13 +25,12 @@ const StatCard = ({ title, value, icon, gradient, sub, delay = 0 }) => (
   <Paper
     elevation={0}
     sx={{
-      p: 2.5,
+      p: { xs: 2, md: 2.5 },
       borderRadius: 3,
       background: gradient,
       color: "#fff",
       position: "relative",
       overflow: "hidden",
-      cursor: "default",
       animation: `fadeUp 0.5s ease both`,
       animationDelay: `${delay}ms`,
       "@keyframes fadeUp": {
@@ -46,30 +45,25 @@ const StatCard = ({ title, value, icon, gradient, sub, delay = 0 }) => (
       transition: "all 0.25s ease",
     }}
   >
-    {/* bg circle */}
     <Box sx={{
       position: "absolute", right: -18, top: -18,
       width: 90, height: 90, borderRadius: "50%",
       background: "rgba(255,255,255,0.1)",
     }} />
-
     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
       <Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 600, opacity: 0.85, mb: 0.5, letterSpacing: 0.3 }}>
+        <Typography sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 600, opacity: 0.85, mb: 0.5 }}>
           {title}
         </Typography>
-        <Typography sx={{ fontSize: 26, fontWeight: 800, lineHeight: 1.1 }}>
+        <Typography sx={{ fontSize: { xs: 20, md: 26 }, fontWeight: 800, lineHeight: 1.1 }}>
           {value}
         </Typography>
         {sub && (
-          <Typography sx={{ fontSize: 12, opacity: 0.8, mt: 0.5 }}>
-            {sub}
-          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.8, mt: 0.5 }}>{sub}</Typography>
         )}
       </Box>
       <Box sx={{
-        bgcolor: "rgba(255,255,255,0.2)",
-        borderRadius: 2, p: 1,
+        bgcolor: "rgba(255,255,255,0.2)", borderRadius: 2, p: 1,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         {icon}
@@ -79,20 +73,19 @@ const StatCard = ({ title, value, icon, gradient, sub, delay = 0 }) => (
 );
 
 /* ======================================================
-   QUICK ACTION BUTTON
+   QUICK ACTION
 ====================================================== */
 const QuickAction = ({ label, icon, color, onClick }) => (
   <Button
     onClick={onClick}
     startIcon={icon}
     variant="contained"
+    size="small"
     sx={{
-      bgcolor: color,
-      borderRadius: 2,
-      fontWeight: 700,
-      fontSize: 13,
-      px: 2.5,
-      py: 1.2,
+      bgcolor: color, borderRadius: 2, fontWeight: 700,
+      fontSize: { xs: 12, md: 13 },
+      px: { xs: 1.5, md: 2.5 },
+      py: { xs: 1, md: 1.2 },
       boxShadow: "none",
       "&:hover": {
         bgcolor: color,
@@ -113,6 +106,10 @@ const QuickAction = ({ label, icon, color, onClick }) => (
 const AdminDashboard = () => {
   const { token, name } = useContext(AuthContext);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -143,55 +140,57 @@ const AdminDashboard = () => {
   const maxQty = data.topProducts?.[0]?.totalQty || 1;
 
   return (
-    <Box sx={{ p: { xs: 1.5, md: 3 }, bgcolor: LIGHT, minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, bgcolor: LIGHT, minHeight: "100vh" }}>
 
       {/* ── HEADER ── */}
-      <Box sx={{ mb: 3 }}>
-        <Typography sx={{ fontSize: 22, fontWeight: 800, color: BLUE }}>
+      <Box sx={{ mb: { xs: 2, md: 3 } }}>
+        <Typography sx={{ fontSize: { xs: 18, md: 22 }, fontWeight: 800, color: BLUE }}>
           Welcome back, {name || "Admin"} 👋
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: 12, md: 14 } }}>
+          {new Date().toLocaleDateString("en-IN", {
+            weekday: "long", year: "numeric", month: "long", day: "numeric"
+          })}
         </Typography>
       </Box>
 
-      {/* ── STAT CARDS ROW 1 ── */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      {/* ── STAT CARDS ── */}
+      <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, md: 2 } }}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatCard
             title="Total Revenue"
             value={`₹${(data.totalRevenue || 0).toLocaleString()}`}
-            icon={<CurrencyRupee sx={{ fontSize: 28 }} />}
+            icon={<CurrencyRupee sx={{ fontSize: { xs: 22, md: 28 } }} />}
             gradient={`linear-gradient(135deg, ${BLUE}, #1a4a7a)`}
-            sub={`${data.totalBills} bills generated`}
+            sub={`${data.totalBills} bills`}
             delay={0}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatCard
             title="Pending Payments"
             value={`₹${(data.totalPendingPayments || 0).toLocaleString()}`}
-            icon={<Warning sx={{ fontSize: 28 }} />}
+            icon={<Warning sx={{ fontSize: { xs: 22, md: 28 } }} />}
             gradient="linear-gradient(135deg, #e65100, #ff8f00)"
             sub="Across all bills"
             delay={80}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatCard
             title="Total Orders"
             value={data.totalOrders || 0}
-            icon={<ShoppingCart sx={{ fontSize: 28 }} />}
+            icon={<ShoppingCart sx={{ fontSize: { xs: 22, md: 28 } }} />}
             gradient={`linear-gradient(135deg, ${RED}, #a51218)`}
             sub={`${data.pendingOrders} pending`}
             delay={160}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <StatCard
             title="Total Products"
             value={data.totalProducts || 0}
-            icon={<Inventory sx={{ fontSize: 28 }} />}
+            icon={<Inventory sx={{ fontSize: { xs: 22, md: 28 } }} />}
             gradient="linear-gradient(135deg, #00695c, #00897b)"
             sub={`${data.lowStockProducts?.length || 0} low stock`}
             delay={240}
@@ -200,59 +199,29 @@ const AdminDashboard = () => {
       </Grid>
 
       {/* ── QUICK ACTIONS ── */}
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, mb: 2, bgcolor: "#fff" }}>
-        <Typography sx={{ fontWeight: 700, color: BLUE, mb: 2, fontSize: 15 }}>
+      <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
+        <Typography sx={{ fontWeight: 700, color: BLUE, mb: 1.5, fontSize: { xs: 13, md: 15 } }}>
           ⚡ Quick Actions
         </Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-          <QuickAction
-            label="New Bill"
-            icon={<Receipt fontSize="small" />}
-            color={RED}
-            onClick={() => navigate("/admin/billing")}
-          />
-          <QuickAction
-            label="Add Product"
-            icon={<AddCircle fontSize="small" />}
-            color={BLUE}
-            onClick={() => navigate("/admin/products")}
-          />
-          <QuickAction
-            label="Manage Orders"
-            icon={<ShoppingCart fontSize="small" />}
-            color="#2e7d32"
-            onClick={() => navigate("/admin/orders")}
-          />
-          <QuickAction
-            label="Master List"
-            icon={<People fontSize="small" />}
-            color="#6a1b9a"
-            onClick={() => navigate("/admin/master-list")}
-          />
-          <QuickAction
-            label="Categories"
-            icon={<Category fontSize="small" />}
-            color="#0277bd"
-            onClick={() => navigate("/admin/categories")}
-          />
-          <QuickAction
-            label="Billing History"
-            icon={<ListAlt fontSize="small" />}
-            color="#e65100"
-            onClick={() => navigate("/admin/billing-history")}
-          />
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, md: 1.5 } }}>
+          <QuickAction label="New Bill"        icon={<Receipt fontSize="small" />}     color={RED}      onClick={() => navigate("/admin/billing")} />
+          <QuickAction label="Add Product"     icon={<AddCircle fontSize="small" />}   color={BLUE}     onClick={() => navigate("/admin/products")} />
+          <QuickAction label="Orders"          icon={<ShoppingCart fontSize="small" />} color="#2e7d32" onClick={() => navigate("/admin/orders")} />
+          <QuickAction label="Master List"     icon={<People fontSize="small" />}      color="#6a1b9a"  onClick={() => navigate("/admin/master-list")} />
+          <QuickAction label="Categories"      icon={<Category fontSize="small" />}    color="#0277bd"  onClick={() => navigate("/admin/categories")} />
+          <QuickAction label="Bill History"    icon={<ListAlt fontSize="small" />}     color="#e65100"  onClick={() => navigate("/admin/billing-history")} />
         </Box>
       </Paper>
 
-      {/* ── ROW 2: TOP PRODUCTS + LOW STOCK ── */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      {/* ── TOP PRODUCTS + LOW STOCK ── */}
+      <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, md: 2 } }}>
 
         {/* TOP PRODUCTS */}
         <Grid item xs={12} md={7}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "#fff", height: "100%" }}>
+          <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, bgcolor: "#fff", height: "100%" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <TrendingUp sx={{ color: RED }} />
-              <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: 15 }}>
+              <TrendingUp sx={{ color: RED, fontSize: { xs: 18, md: 20 } }} />
+              <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
                 Top Selling Products
               </Typography>
             </Box>
@@ -263,20 +232,20 @@ const AdminDashboard = () => {
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                 {data.topProducts?.map((p, i) => (
                   <Box key={p.id}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, md: 1.5 }, mb: 0.5 }}>
                       <Avatar
                         src={p.image}
                         variant="rounded"
-                        sx={{ width: 36, height: 36, bgcolor: "#f0f0f0" }}
+                        sx={{ width: { xs: 28, md: 36 }, height: { xs: 28, md: 36 }, bgcolor: "#f0f0f0", flexShrink: 0 }}
                       >
                         {p.title?.charAt(0)}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography fontSize={13} fontWeight={700} noWrap color={BLUE}>
+                          <Typography fontSize={{ xs: 12, md: 13 }} fontWeight={700} noWrap color={BLUE}>
                             {i + 1}. {p.title}
                           </Typography>
-                          <Typography fontSize={12} fontWeight={700} color={RED} sx={{ ml: 1, whiteSpace: "nowrap" }}>
+                          <Typography fontSize={{ xs: 11, md: 12 }} fontWeight={700} color={RED} sx={{ ml: 1, whiteSpace: "nowrap" }}>
                             {p.totalQty} units
                           </Typography>
                         </Box>
@@ -284,15 +253,16 @@ const AdminDashboard = () => {
                           variant="determinate"
                           value={(p.totalQty / maxQty) * 100}
                           sx={{
-                            mt: 0.5, height: 5, borderRadius: 5,
-                            bgcolor: "#f0f0f0",
+                            mt: 0.5, height: 5, borderRadius: 5, bgcolor: "#f0f0f0",
                             "& .MuiLinearProgress-bar": { bgcolor: i === 0 ? RED : BLUE },
                           }}
                         />
                       </Box>
-                      <Typography fontSize={12} color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
-                        ₹{p.totalRevenue.toLocaleString()}
-                      </Typography>
+                      {!isMobile && (
+                        <Typography fontSize={12} color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                          ₹{p.totalRevenue.toLocaleString()}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 ))}
@@ -301,12 +271,12 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        {/* LOW STOCK ALERT */}
+        {/* LOW STOCK */}
         <Grid item xs={12} md={5}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "#fff", height: "100%" }}>
+          <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, bgcolor: "#fff", height: "100%" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <Warning sx={{ color: "#e65100" }} />
-              <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: 15 }}>
+              <Warning sx={{ color: "#e65100", fontSize: { xs: 18, md: 20 } }} />
+              <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
                 Low Stock Alert
               </Typography>
               {data.lowStockProducts?.length > 0 && (
@@ -321,47 +291,34 @@ const AdminDashboard = () => {
             {data.lowStockProducts?.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 3 }}>
                 <Typography fontSize={28}>✅</Typography>
-                <Typography fontSize={13} color="text.secondary" mt={1}>
-                  All products well stocked
-                </Typography>
+                <Typography fontSize={13} color="text.secondary" mt={1}>All products well stocked</Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {data.lowStockProducts?.map((p) => (
-                  <Box
-                    key={p._id}
-                    sx={{
-                      display: "flex", alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 1, borderRadius: 2,
-                      bgcolor: p.stock === 0 ? "#ffebee" : "#fff8e1",
-                      border: `1px solid ${p.stock === 0 ? "#ffcdd2" : "#ffe082"}`,
-                    }}
-                  >
+                  <Box key={p._id} sx={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    p: 1, borderRadius: 2,
+                    bgcolor: p.stock === 0 ? "#ffebee" : "#fff8e1",
+                    border: `1px solid ${p.stock === 0 ? "#ffcdd2" : "#ffe082"}`,
+                  }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Avatar src={p.image} variant="rounded" sx={{ width: 30, height: 30, bgcolor: "#f0f0f0" }}>
                         {p.title?.charAt(0)}
                       </Avatar>
-                      <Typography fontSize={13} fontWeight={600} noWrap sx={{ maxWidth: 150 }}>
+                      <Typography fontSize={{ xs: 12, md: 13 }} fontWeight={600} noWrap sx={{ maxWidth: { xs: 100, md: 150 } }}>
                         {p.title}
                       </Typography>
                     </Box>
                     <Chip
                       label={p.stock === 0 ? "Out of Stock" : `${p.stock} left`}
                       size="small"
-                      sx={{
-                        fontWeight: 700, fontSize: 11,
-                        bgcolor: p.stock === 0 ? RED : "#ff8f00",
-                        color: "#fff",
-                      }}
+                      sx={{ fontWeight: 700, fontSize: 11, bgcolor: p.stock === 0 ? RED : "#ff8f00", color: "#fff", flexShrink: 0 }}
                     />
                   </Box>
                 ))}
-                <Button
-                  size="small"
-                  onClick={() => navigate("/admin/products")}
-                  sx={{ mt: 1, color: BLUE, fontWeight: 700, fontSize: 12 }}
-                >
+                <Button size="small" onClick={() => navigate("/admin/products")}
+                  sx={{ mt: 1, color: BLUE, fontWeight: 700, fontSize: 12 }}>
                   Manage Stock →
                 </Button>
               </Box>
@@ -371,19 +328,16 @@ const AdminDashboard = () => {
       </Grid>
 
       {/* ── RECENT BILLS ── */}
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "#fff" }}>
+      <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, bgcolor: "#fff" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Receipt sx={{ color: RED }} />
-            <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: 15 }}>
+            <Receipt sx={{ color: RED, fontSize: { xs: 18, md: 20 } }} />
+            <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
               Recent Bills
             </Typography>
           </Box>
-          <Button
-            size="small"
-            onClick={() => navigate("/admin/billing-history")}
-            sx={{ color: RED, fontWeight: 700, fontSize: 12 }}
-          >
+          <Button size="small" onClick={() => navigate("/admin/billing-history")}
+            sx={{ color: RED, fontWeight: 700, fontSize: 12 }}>
             View All →
           </Button>
         </Box>
@@ -391,34 +345,47 @@ const AdminDashboard = () => {
         {data.recentBills?.length === 0 ? (
           <Typography color="text.secondary" fontSize={13}>No bills yet</Typography>
         ) : (
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ bgcolor: "#f8f9fa" }}>
-                {["Invoice", "Customer", "Amount", "Paid", "Pending", "Status", "Date"].map(h => (
-                  <TableCell key={h} sx={{ fontWeight: 700, color: BLUE, fontSize: 12, border: "none" }}>
-                    {h}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.recentBills?.map((bill) => (
-                <TableRow key={bill._id} hover sx={{ "& td": { border: "none", fontSize: 13 } }}>
-                  <TableCell sx={{ fontWeight: 700, color: BLUE }}>#{bill.invoiceNumber}</TableCell>
-                  <TableCell>{bill.customerName}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>₹{bill.totalAmount}</TableCell>
-                  <TableCell sx={{ color: "#2e7d32", fontWeight: 600 }}>₹{bill.paidAmount}</TableCell>
-                  <TableCell sx={{ color: bill.pendingAmount > 0 ? RED : "#2e7d32", fontWeight: 600 }}>
-                    ₹{bill.pendingAmount}
-                  </TableCell>
-                  <TableCell>{paymentChip(bill)}</TableCell>
-                  <TableCell sx={{ color: "#888" }}>
-                    {new Date(bill.createdAt).toLocaleDateString("en-IN")}
-                  </TableCell>
+          <Box sx={{ overflowX: "auto" }}>
+            <Table size="small" sx={{ minWidth: { xs: 500, md: "100%" } }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: "#f8f9fa" }}>
+                  {(isMobile
+                    ? ["Invoice", "Customer", "Amount", "Status"]
+                    : ["Invoice", "Customer", "Amount", "Paid", "Pending", "Status", "Date"]
+                  ).map(h => (
+                    <TableCell key={h} sx={{ fontWeight: 700, color: BLUE, fontSize: 12, border: "none" }}>
+                      {h}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {data.recentBills?.map((bill) => (
+                  <TableRow key={bill._id} hover sx={{ "& td": { border: "none", fontSize: { xs: 12, md: 13 } } }}>
+                    <TableCell sx={{ fontWeight: 700, color: BLUE }}>#{bill.invoiceNumber}</TableCell>
+                    <TableCell sx={{ maxWidth: { xs: 80, md: "none" } }}>
+                      <Typography noWrap fontSize={{ xs: 12, md: 13 }}>{bill.customerName}</Typography>
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>₹{bill.totalAmount}</TableCell>
+                    {!isMobile && (
+                      <>
+                        <TableCell sx={{ color: "#2e7d32", fontWeight: 600 }}>₹{bill.paidAmount}</TableCell>
+                        <TableCell sx={{ color: bill.pendingAmount > 0 ? RED : "#2e7d32", fontWeight: 600 }}>
+                          ₹{bill.pendingAmount}
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell>{paymentChip(bill)}</TableCell>
+                    {!isMobile && (
+                      <TableCell sx={{ color: "#888", whiteSpace: "nowrap" }}>
+                        {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
         )}
       </Paper>
 
