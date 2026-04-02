@@ -68,7 +68,7 @@ const Footer = () => {
         {/* COPYRIGHT */}
         <Box className="footer-bottom">
           <Typography className="footer-copy">
-            © 2026 Janki Enterprises | Campa Cola Distributor  |  Design and Developed by Midbrains Technologies
+            © 2026 Janki Enterprises | Campa Cola Distributor 
           </Typography>
         </Box>
       </Container>
