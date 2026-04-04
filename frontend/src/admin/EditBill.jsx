@@ -11,6 +11,7 @@ import {
   TableCell,
   TableBody,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import API from "../api/api";
@@ -37,9 +38,7 @@ const EditBill = () => {
   const [newPrice, setNewPrice] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // ===============================
-  // CLOSE DROPDOWN ON OUTSIDE CLICK
-  // ===============================
+  // CLOSE DROPDOWN
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -51,15 +50,11 @@ const EditBill = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
+    return () =>
       document.removeEventListener("mousedown", handleClickOutside);
-    };
   }, []);
 
-  // ===============================
   // FETCH BILL
-  // ===============================
   useEffect(() => {
     API.get(`/billing/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -76,9 +71,7 @@ const EditBill = () => {
       });
   }, [id, token, navigate]);
 
-  // ===============================
   // FETCH PRODUCTS
-  // ===============================
   useEffect(() => {
     API.get("/products", {
       headers: { Authorization: `Bearer ${token}` },
@@ -94,9 +87,7 @@ const EditBill = () => {
 
   if (loading || !bill) return null;
 
-  // ===============================
-  // SEARCH PRODUCT
-  // ===============================
+  // SEARCH
   const handleSearch = (value) => {
     setSearch(value);
     setShowDropdown(true);
@@ -108,9 +99,7 @@ const EditBill = () => {
     setFilteredProducts(filtered);
   };
 
-  // ===============================
   // SELECT PRODUCT
-  // ===============================
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
     setSearch(product.title);
@@ -118,9 +107,7 @@ const EditBill = () => {
     setShowDropdown(false);
   };
 
-  // ===============================
   // ADD PRODUCT
-  // ===============================
   const handleAddProduct = () => {
     if (!selectedProduct) {
       toast.error("Please select a product");
@@ -138,8 +125,7 @@ const EditBill = () => {
     }
 
     const exists = items.find(
-      (item) =>
-        item.productId?._id === selectedProduct._id
+      (item) => item.productId?._id === selectedProduct._id
     );
 
     if (exists) {
@@ -158,25 +144,20 @@ const EditBill = () => {
 
     setItems([...items, newItem]);
 
-    // reset fields
     setSelectedProduct(null);
     setSearch("");
     setNewQty(1);
     setNewPrice(0);
   };
 
-  // ===============================
   // UPDATE QTY
-  // ===============================
   const updateQty = (index, value) => {
     const updated = [...items];
     updated[index].quantity = Number(value);
     setItems(updated);
   };
 
-  // ===============================
   // UPDATE PRICE
-  // ===============================
   const updatePrice = (index, value) => {
     const updated = [...items];
     updated[index].price = Number(value);
@@ -193,23 +174,26 @@ const EditBill = () => {
     0
   );
 
-  // ===============================
   // UPDATE BILL
-  // ===============================
   const handleUpdate = async () => {
     try {
+      if (paidAmount > totalAmount) {
+        toast.error("Paid amount cannot exceed total");
+        return;
+      }
+
       await API.put(
         `/billing/${id}`,
         {
           customerName: bill.customerName,
-          customerMobile: bill.customerMobile,
-          customerAddress: bill.customerAddress,
+          customerMobile: bill.customerMobile || undefined,
+          customerAddress: bill.customerAddress || undefined,
+          paymentMode: bill.paymentMode,
           items: items.map((item) => ({
             productId: item.productId._id,
             price: item.price,
             quantity: item.quantity,
           })),
-          paymentMode: bill.paymentMode,
           paidAmount,
         },
         {
@@ -232,17 +216,64 @@ const EditBill = () => {
 
       <Paper sx={{ p: 2 }}>
 
-        {/* ADD PRODUCT SECTION */}
+        {/* CUSTOMER DETAILS */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" mb={1}>
+            Customer Details
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <TextField
+              label="Customer Name"
+              value={bill.customerName || ""}
+              onChange={(e) =>
+                setBill({ ...bill, customerName: e.target.value })
+              }
+              sx={{ flex: 1 }}
+            />
+
+            <TextField
+              label="Mobile (Optional)"
+              value={bill.customerMobile || ""}
+              onChange={(e) =>
+                setBill({ ...bill, customerMobile: e.target.value })
+              }
+              sx={{ flex: 1 }}
+            />
+
+            <TextField
+              label="Address (Optional)"
+              value={bill.customerAddress || ""}
+              onChange={(e) =>
+                setBill({ ...bill, customerAddress: e.target.value })
+              }
+              sx={{ flex: 1 }}
+            />
+
+            <TextField
+              select
+              label="Payment Mode"
+              value={bill.paymentMode || ""}
+              onChange={(e) =>
+                setBill({ ...bill, paymentMode: e.target.value })
+              }
+              sx={{ width: 200 }}
+            >
+              <MenuItem value="Cash">Cash</MenuItem>
+              <MenuItem value="Online">Online</MenuItem>
+              <MenuItem value="Card">Card</MenuItem>
+            </TextField>
+          </Box>
+        </Box>
+
+        {/* ADD PRODUCT */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle1" mb={1}>
             Add Product
           </Typography>
 
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Box
-              ref={dropdownRef}
-              sx={{ flex: 1, position: "relative" }}
-            >
+            <Box ref={dropdownRef} sx={{ flex: 1, position: "relative" }}>
               <TextField
                 fullWidth
                 label="Search Product"
@@ -251,9 +282,7 @@ const EditBill = () => {
                   setShowDropdown(true);
                   setFilteredProducts(products);
                 }}
-                onChange={(e) =>
-                  handleSearch(e.target.value)
-                }
+                onChange={(e) => handleSearch(e.target.value)}
               />
 
               {showDropdown && (
@@ -272,16 +301,11 @@ const EditBill = () => {
                       sx={{
                         p: 1,
                         cursor: "pointer",
-                        "&:hover": {
-                          backgroundColor: "#f5f5f5",
-                        },
+                        "&:hover": { backgroundColor: "#f5f5f5" },
                       }}
-                      onClick={() =>
-                        handleSelectProduct(product)
-                      }
+                      onClick={() => handleSelectProduct(product)}
                     >
-                      {product.title} - ₹{product.price}
-                      (Stock: {product.stock})
+                      {product.title} - ₹{product.price} (Stock: {product.stock})
                     </Box>
                   ))}
                 </Paper>
@@ -292,9 +316,7 @@ const EditBill = () => {
               type="number"
               label="Qty"
               value={newQty}
-              onChange={(e) =>
-                setNewQty(Number(e.target.value))
-              }
+              onChange={(e) => setNewQty(Number(e.target.value))}
               sx={{ width: 100 }}
             />
 
@@ -302,22 +324,17 @@ const EditBill = () => {
               type="number"
               label="Price"
               value={newPrice}
-              onChange={(e) =>
-                setNewPrice(Number(e.target.value))
-              }
+              onChange={(e) => setNewPrice(Number(e.target.value))}
               sx={{ width: 120 }}
             />
 
-            <Button
-              variant="contained"
-              onClick={handleAddProduct}
-            >
+            <Button variant="contained" onClick={handleAddProduct}>
               Add
             </Button>
           </Box>
         </Box>
 
-        {/* ITEMS TABLE */}
+        {/* TABLE */}
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -332,18 +349,14 @@ const EditBill = () => {
           <TableBody>
             {items.map((item, i) => (
               <TableRow key={i}>
-                <TableCell>
-                  {item.productId?.title}
-                </TableCell>
+                <TableCell>{item.productId?.title}</TableCell>
 
                 <TableCell>
                   <TextField
                     size="small"
                     type="number"
                     value={item.price}
-                    onChange={(e) =>
-                      updatePrice(i, e.target.value)
-                    }
+                    onChange={(e) => updatePrice(i, e.target.value)}
                     sx={{ width: 100 }}
                   />
                 </TableCell>
@@ -353,24 +366,15 @@ const EditBill = () => {
                     size="small"
                     type="number"
                     value={item.quantity}
-                    onChange={(e) =>
-                      updateQty(i, e.target.value)
-                    }
+                    onChange={(e) => updateQty(i, e.target.value)}
                     sx={{ width: 80 }}
                   />
                 </TableCell>
 
-                <TableCell>
-                  ₹{item.price * item.quantity}
-                </TableCell>
+                <TableCell>₹{item.price * item.quantity}</TableCell>
 
                 <TableCell>
-                  <IconButton
-                    color="error"
-                    onClick={() =>
-                      removeItem(i)
-                    }
-                  >
+                  <IconButton color="error" onClick={() => removeItem(i)}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
@@ -387,13 +391,12 @@ const EditBill = () => {
             label="Paid Amount"
             type="number"
             value={paidAmount}
-            onChange={(e) =>
-              setPaidAmount(Number(e.target.value))
-            }
+            onChange={(e) => setPaidAmount(Number(e.target.value))}
             sx={{ mt: 1 }}
           />
         </Box>
 
+        {/* BUTTONS */}
         <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
           <Button variant="contained" onClick={handleUpdate}>
             Update Bill
@@ -401,9 +404,7 @@ const EditBill = () => {
 
           <Button
             variant="outlined"
-            onClick={() =>
-              navigate("/admin/billing-history")
-            }
+            onClick={() => navigate("/admin/billing-history")}
           >
             Cancel
           </Button>
