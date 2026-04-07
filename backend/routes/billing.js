@@ -77,9 +77,14 @@ router.post("/create", auth(["admin"]), async (req, res) => {
       { new: true, upsert: true }
     );
 
+    // 🔥 MONTH + RUNNING NUMBER (YOUR REQUIREMENT)
+    const month = String(new Date().getMonth() + 1).padStart(2, "0");
+    const billNumber = String(counter.seq).padStart(3, "0");
+    const invoiceNumber = `${month}${billNumber}`;
+
     /* 4️⃣ CREATE BILL */
     const newBill = new Bill({
-      invoiceNumber: counter.seq,
+      invoiceNumber, // ✅ UPDATED
       customerName,
       customerMobile,
       customerAddress,
@@ -118,11 +123,12 @@ router.get("/all", auth(["admin"]), async (req, res) => {
 
     let query = {};
 
-    /* 🔎 SEARCH (NAME OR MOBILE) */
+    /* 🔎 SEARCH (NAME OR MOBILE OR INVOICE) */
     if (search) {
       query.$or = [
         { customerName: { $regex: search, $options: "i" } },
         { customerMobile: { $regex: search, $options: "i" } },
+        { invoiceNumber: { $regex: search, $options: "i" } }, // ✅ ADDED
       ];
     }
 
@@ -161,10 +167,8 @@ router.get("/all", auth(["admin"]), async (req, res) => {
       query.createdAt = { $gte: startDate };
     }
 
-    /* 📊 TOTAL AFTER FILTER */
     const total = await Bill.countDocuments(query);
 
-    /* 📦 PAGINATED DATA */
     const bills = await Bill.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

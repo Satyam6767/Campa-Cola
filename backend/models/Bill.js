@@ -10,7 +10,6 @@ const billSchema = new mongoose.Schema(
 
     customerMobile: {
       type: String,
-      // required: true,
       trim: true,
     },
 
@@ -48,7 +47,7 @@ const billSchema = new mongoose.Schema(
     // ✅ PAYMENT DETAILS
     paymentStatus: {
       type: String,
-      enum: ["Paid", "Unpaid", "Partial"], // ✅ FIXED: Added "Partial"
+      enum: ["Paid", "Unpaid", "Partial"],
       default: "Unpaid",
     },
 
@@ -64,8 +63,9 @@ const billSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // ✅ UPDATED HERE
     invoiceNumber: {
-      type: Number,
+      type: String, // 🔥 IMPORTANT CHANGE
       unique: true,
     },
 
