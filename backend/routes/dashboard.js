@@ -23,6 +23,53 @@ router.get("/", auth(["admin"]), async (req, res) => {
     const totalRevenue = bills.reduce((sum, b) => sum + b.totalAmount, 0);
     const totalPendingPayments = bills.reduce((sum, b) => sum + (b.pendingAmount || 0), 0);
 
+    /* ── TODAY & MONTH REVENUE ── */
+    const now = new Date();
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let todayRevenue = 0;
+    let monthRevenue = 0;
+
+    bills.forEach(b => {
+      const date = new Date(b.createdAt);
+
+      if (date >= startOfToday) {
+        todayRevenue += b.totalAmount;
+      }
+
+      if (date >= startOfMonth) {
+        monthRevenue += b.totalAmount;
+      }
+    });
+
+    /* ── SALES GRAPH (LAST 7 DAYS) ── */
+    const salesMap = {};
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+      salesMap[key] = 0;
+    }
+
+    bills.forEach(b => {
+      const d = new Date(b.createdAt);
+      const key = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+      if (salesMap[key] !== undefined) {
+        salesMap[key] += b.totalAmount;
+      }
+    });
+
+    const salesGraph = Object.keys(salesMap).map(date => ({
+      date,
+      revenue: salesMap[date],
+    }));
+
     /* ── PRODUCTS ── */
     const products = await Product.find().lean();
     const totalProducts = products.length;
@@ -35,17 +82,20 @@ router.get("/", auth(["admin"]), async (req, res) => {
     /* ── CUSTOMERS ── */
     const totalCustomers = await Customer.countDocuments();
 
-    /* ── TOP PRODUCTS (most billed by quantity) ── */
+    /* ── TOP PRODUCTS ── */
     const productSalesMap = {};
     bills.forEach(bill => {
       bill.items.forEach(item => {
         const id = item.productId?._id?.toString() || item.productId?.toString();
         const title = item.productId?.title || "Unknown";
         const image = item.productId?.image || "";
+
         if (!id) return;
+
         if (!productSalesMap[id]) {
           productSalesMap[id] = { title, image, totalQty: 0, totalRevenue: 0 };
         }
+
         productSalesMap[id].totalQty += item.quantity;
         productSalesMap[id].totalRevenue += item.price * item.quantity;
       });
@@ -54,6 +104,24 @@ router.get("/", auth(["admin"]), async (req, res) => {
     const topProducts = Object.entries(productSalesMap)
       .map(([id, data]) => ({ id, ...data }))
       .sort((a, b) => b.totalQty - a.totalQty)
+      .slice(0, 5);
+
+    /* ── TOP CUSTOMERS ── */
+    const customerMap = {};
+
+    bills.forEach(b => {
+      const name = b.customerName || "Unknown";
+
+      if (!customerMap[name]) {
+        customerMap[name] = 0;
+      }
+
+      customerMap[name] += b.totalAmount;
+    });
+
+    const topCustomers = Object.entries(customerMap)
+      .map(([name, total]) => ({ name, total }))
+      .sort((a, b) => b.total - a.total)
       .slice(0, 5);
 
     /* ── RECENT BILLS ── */
@@ -67,17 +135,28 @@ router.get("/", auth(["admin"]), async (req, res) => {
       totalOrders,
       deliveredOrders,
       pendingOrders,
+
       // Bills
       totalBills,
       totalRevenue,
       totalPendingPayments,
+      todayRevenue,
+      monthRevenue,
+
       // Products
       totalProducts,
       lowStockProducts,
+
       // Customers
       totalCustomers,
+      topCustomers,
+
+      // Graph
+      salesGraph,
+
       // Top products
       topProducts,
+
       // Recent bills
       recentBills,
     });

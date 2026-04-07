@@ -5,14 +5,18 @@ import { useNavigate } from "react-router-dom";
 import {
   Box, Grid, Paper, Typography, Button, Chip,
   Table, TableHead, TableRow, TableCell, TableBody,
-  Avatar, CircularProgress, Divider, LinearProgress,
+  Avatar, CircularProgress, LinearProgress,
   useMediaQuery, useTheme,
 } from "@mui/material";
 import {
   CurrencyRupee, Receipt, Inventory,
   Warning, TrendingUp, ShoppingCart, AddCircle,
-  Category, ListAlt, People,
+  Category, ListAlt, People, EmojiEvents,
 } from "@mui/icons-material";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid,
+} from "recharts";
 
 const BLUE  = "#0B2A4A";
 const RED   = "#C4161C";
@@ -108,7 +112,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +122,7 @@ const AdminDashboard = () => {
     })
       .then(res => { setData(res.data); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   if (loading) return (
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -154,7 +157,7 @@ const AdminDashboard = () => {
         </Typography>
       </Box>
 
-      {/* ── STAT CARDS ── */}
+      {/* ── STAT CARDS (row 1) ── */}
       <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, md: 2 } }}>
         <Grid item xs={6} sm={6} md={3}>
           <StatCard
@@ -198,19 +201,80 @@ const AdminDashboard = () => {
         </Grid>
       </Grid>
 
+      {/* ── STAT CARDS (row 2 — today + monthly) ── */}
+      <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ mb: { xs: 1.5, md: 2 } }}>
+        <Grid item xs={6} md={3}>
+          <StatCard
+            title="Today's Revenue"
+            value={`₹${(data.todayRevenue || 0).toLocaleString()}`}
+            icon={<CurrencyRupee sx={{ fontSize: { xs: 22, md: 28 } }} />}
+            gradient="linear-gradient(135deg, #1b5e20, #2e7d32)"
+            delay={320}
+          />
+        </Grid>
+        <Grid item xs={6} md={3}>
+          <StatCard
+            title="Monthly Revenue"
+            value={`₹${(data.monthRevenue || 0).toLocaleString()}`}
+            icon={<TrendingUp sx={{ fontSize: { xs: 22, md: 28 } }} />}
+            gradient="linear-gradient(135deg, #4a148c, #7b1fa2)"
+            delay={400}
+          />
+        </Grid>
+      </Grid>
+
       {/* ── QUICK ACTIONS ── */}
       <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
         <Typography sx={{ fontWeight: 700, color: BLUE, mb: 1.5, fontSize: { xs: 13, md: 15 } }}>
           ⚡ Quick Actions
         </Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, md: 1.5 } }}>
-          <QuickAction label="New Bill"        icon={<Receipt fontSize="small" />}     color={RED}      onClick={() => navigate("/admin/billing")} />
-          <QuickAction label="Add Product"     icon={<AddCircle fontSize="small" />}   color={BLUE}     onClick={() => navigate("/admin/products")} />
-          <QuickAction label="Orders"          icon={<ShoppingCart fontSize="small" />} color="#2e7d32" onClick={() => navigate("/admin/orders")} />
-          <QuickAction label="Master List"     icon={<People fontSize="small" />}      color="#6a1b9a"  onClick={() => navigate("/admin/master-list")} />
-          <QuickAction label="Categories"      icon={<Category fontSize="small" />}    color="#0277bd"  onClick={() => navigate("/admin/categories")} />
-          <QuickAction label="Bill History"    icon={<ListAlt fontSize="small" />}     color="#e65100"  onClick={() => navigate("/admin/billing-history")} />
+          <QuickAction label="New Bill"     icon={<Receipt fontSize="small" />}      color={RED}      onClick={() => navigate("/admin/billing")} />
+          <QuickAction label="Add Product"  icon={<AddCircle fontSize="small" />}    color={BLUE}     onClick={() => navigate("/admin/products")} />
+          <QuickAction label="Orders"       icon={<ShoppingCart fontSize="small" />} color="#2e7d32"  onClick={() => navigate("/admin/orders")} />
+          <QuickAction label="Master List"  icon={<People fontSize="small" />}       color="#6a1b9a"  onClick={() => navigate("/admin/master-list")} />
+          <QuickAction label="Categories"   icon={<Category fontSize="small" />}     color="#0277bd"  onClick={() => navigate("/admin/categories")} />
+          <QuickAction label="Bill History" icon={<ListAlt fontSize="small" />}      color="#e65100"  onClick={() => navigate("/admin/billing-history")} />
         </Box>
+      </Paper>
+
+      {/* ── SALES GRAPH ── */}
+      <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <TrendingUp sx={{ color: RED, fontSize: { xs: 18, md: 20 } }} />
+          <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
+            Sales Overview
+          </Typography>
+        </Box>
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart data={data.salesGraph || []} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 11, fill: "#888" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#888" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `₹${v.toLocaleString()}`}
+            />
+            <Tooltip
+              formatter={(v) => [`₹${v.toLocaleString()}`, "Revenue"]}
+              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 12 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke={RED}
+              strokeWidth={2.5}
+              dot={{ r: 3, fill: RED, strokeWidth: 0 }}
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </Paper>
 
       {/* ── TOP PRODUCTS + LOW STOCK ── */}
@@ -225,7 +289,6 @@ const AdminDashboard = () => {
                 Top Selling Products
               </Typography>
             </Box>
-
             {data.topProducts?.length === 0 ? (
               <Typography color="text.secondary" fontSize={13}>No billing data yet</Typography>
             ) : (
@@ -287,7 +350,6 @@ const AdminDashboard = () => {
                 />
               )}
             </Box>
-
             {data.lowStockProducts?.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 3 }}>
                 <Typography fontSize={28}>✅</Typography>
@@ -327,6 +389,44 @@ const AdminDashboard = () => {
         </Grid>
       </Grid>
 
+      {/* ── TOP CUSTOMERS ── */}
+      {data.topCustomers?.length > 0 && (
+        <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <EmojiEvents sx={{ color: "#f57f17", fontSize: { xs: 18, md: 20 } }} />
+            <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
+              Top Customers
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            {data.topCustomers.map((c, i) => (
+              <Box key={i} sx={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                p: { xs: 1, md: 1.5 }, borderRadius: 2,
+                bgcolor: i === 0 ? "#fff8e1" : "#fafafa",
+                border: `1px solid ${i === 0 ? "#ffe082" : "#f0f0f0"}`,
+              }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  <Avatar sx={{
+                    width: 32, height: 32,
+                    bgcolor: i === 0 ? "#f57f17" : i === 1 ? "#9e9e9e" : i === 2 ? "#795548" : BLUE,
+                    fontSize: 13, fontWeight: 800,
+                  }}>
+                    {i + 1}
+                  </Avatar>
+                  <Typography fontSize={{ xs: 12, md: 13 }} fontWeight={600} color={BLUE}>
+                    {c.name}
+                  </Typography>
+                </Box>
+                <Typography fontSize={{ xs: 12, md: 13 }} fontWeight={700} color={RED}>
+                  ₹{(c.total || 0).toLocaleString()}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
+      )}
+
       {/* ── RECENT BILLS ── */}
       <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, bgcolor: "#fff" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -341,7 +441,6 @@ const AdminDashboard = () => {
             View All →
           </Button>
         </Box>
-
         {data.recentBills?.length === 0 ? (
           <Typography color="text.secondary" fontSize={13}>No bills yet</Typography>
         ) : (
@@ -363,7 +462,7 @@ const AdminDashboard = () => {
                 {data.recentBills?.map((bill) => (
                   <TableRow key={bill._id} hover sx={{ "& td": { border: "none", fontSize: { xs: 12, md: 13 } } }}>
                     <TableCell sx={{ fontWeight: 700, color: BLUE }}>#{bill.invoiceNumber}</TableCell>
-                    <TableCell sx={{ maxWidth: { xs: 80, md: "none" } }}>
+                    <TableCell>
                       <Typography noWrap fontSize={{ xs: 12, md: 13 }}>{bill.customerName}</Typography>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 700, whiteSpace: "nowrap" }}>₹{bill.totalAmount}</TableCell>
