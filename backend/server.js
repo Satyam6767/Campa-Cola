@@ -18,6 +18,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use("/api/auth", authRoute);
 app.use("/api/products", productRoute);
 app.use("/api/orders", orderRoute);
@@ -43,12 +44,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-// Connect MongoDB
+// PORT
+const PORT = process.env.PORT || 5000;
+
+// Connect MongoDB and Start Server
 mongoose
   .connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .then(() => {
+    console.log("MongoDB Connected");
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
+    // 🔥 IMPORTANT FIX: bind to 0.0.0.0
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on PORT ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
