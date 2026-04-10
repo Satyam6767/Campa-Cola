@@ -66,7 +66,7 @@ const Navbar = () => {
 
             <Box sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
               <img
-                src="/final-logo.png"
+                src="/final-logo.jpeg"
                 alt="Logo"
                 style={{ width: 150 }}
                 loading="lazy"

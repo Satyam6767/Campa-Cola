@@ -12,7 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../mystyle/Login.css";
-import logo from "../../public/final-logo.png";
+import logo from "../../public/final-logo.jpeg";
 
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";

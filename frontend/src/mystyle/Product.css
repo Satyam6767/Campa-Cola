@@ -1,0 +1,168 @@
+/* ===================== */
+/* PRODUCTS SECTION */
+/* ===================== */
+
+.products-section {
+  padding: 60px 0;
+  background: #f9f9f9;
+}
+
+/* ===================== */
+/* SECTION HEADER */
+/* ===================== */
+
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-tag {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 2px;
+  color: #ff3c00;
+  margin-bottom: 10px !important;
+}
+
+.section-title {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: #222;
+}
+
+.section-title span {
+  color: #ff3c00;
+  border-bottom: 3px solid #ff3c00;
+  padding-bottom: 4px;
+}
+
+/* ===================== */
+/* GRID */
+/* ===================== */
+
+.products-grid {
+  display: grid;
+  gap: 25px;
+}
+
+/* FORCE 5 CARDS IN ONE ROW */
+.full-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* HOME GRID (optional - keep flexible or set 5 as well) */
+.home-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* ===================== */
+/* PRODUCT CARD */
+/* ===================== */
+
+.product-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important;
+  background: #fff;
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===================== */
+/* IMAGE */
+/* ===================== */
+
+.product-image {
+  height: 200px;
+  object-fit: contain;
+  padding: 15px;
+  background: #fff;
+}
+
+/* ===================== */
+/* CONTENT */
+/* ===================== */
+
+.product-content {
+  text-align: center;
+  padding: 20px !important;
+}
+
+.product-name {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #333;
+  margin-bottom: 8px !important;
+}
+
+.product-price {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #ff3c00;
+  margin-bottom: 15px !important;
+}
+
+/* ===================== */
+/* BUTTON */
+/* ===================== */
+
+.add-to-cart-btn {
+  background: #ff3c00 !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  transition: 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background: #e63300 !important;
+}
+
+/* ===================== */
+/* VIEW MORE BUTTON */
+/* ===================== */
+
+button.MuiButton-contained {
+  background: #ff3c00 !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+}
+
+button.MuiButton-contained:hover {
+  background: #e63300 !important;
+}
+
+/* ===================== */
+/* RESPONSIVE */
+/* ===================== */
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 26px !important;
+  }
+
+  .product-image {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-section {
+    padding: 40px 10px;
+  }
+
+  .section-title {
+    font-size: 22px !important;
+  }
+}
+
+/* ===================== */
+/* GRID */
+/* ===================== */
+
