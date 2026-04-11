@@ -70,17 +70,41 @@ router.post("/create", auth(["admin"]), async (req, res) => {
         ? "Unpaid"
         : "Partial";
 
-    /* 3️⃣ AUTO INCREMENT INVOICE */
-    const counter = await Counter.findOneAndUpdate(
-      { name: "invoice" },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
+    /* 3️⃣ AUTO INCREMENT INVOICE (FINANCIAL YEAR + LETTER) */
 
-    // 🔥 MONTH + RUNNING NUMBER (YOUR REQUIREMENT)
-    const month = String(new Date().getMonth() + 1).padStart(2, "0");
-    const billNumber = String(counter.seq).padStart(3, "0");
-    const invoiceNumber = `${month}${billNumber}`;
+// Current date
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+
+// Financial Year (April → March)
+let fyStartYear = month >= 4 ? year : year - 1;
+
+// 🎯 Letter logic (A, B, C...)
+const baseYear = 2026; // starting year
+const letterIndex = fyStartYear - baseYear;
+
+// Safety check
+if (letterIndex < 0) {
+  return res.status(400).json({ error: "Invalid financial year setup" });
+}
+
+const prefix = String.fromCharCode(65 + letterIndex); // A, B, C...
+
+// Unique counter per financial year
+const counterName = `invoice-${fyStartYear}`;
+
+const counter = await Counter.findOneAndUpdate(
+  { name: counterName },
+  { $inc: { seq: 1 } },
+  { new: true, upsert: true }
+);
+
+// 5-digit number
+const billNumber = String(counter.seq).padStart(5, "0");
+
+// FINAL INVOICE NUMBER
+const invoiceNumber = `${prefix}${billNumber}`;
 
     /* 4️⃣ CREATE BILL */
     const newBill = new Bill({

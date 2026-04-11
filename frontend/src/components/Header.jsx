@@ -18,12 +18,12 @@ const Header = () => {
         <div className="header-contact">
           <div className="contact-item">
             <FaPhoneAlt />
-            <span>+91 98765 43210</span>
+            <span>+91 8210038214</span>
           </div>
 
           <div className="contact-item">
             <FaEnvelope />
-            <span>info@example.com</span>
+            <span>Jankienterprises252522@gmail.com</span>
           </div>
         </div>
       </div>
