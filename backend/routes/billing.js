@@ -94,11 +94,26 @@ const prefix = String.fromCharCode(65 + letterIndex); // A, B, C...
 // Unique counter per financial year
 const counterName = `invoice-${fyStartYear}`;
 
-const counter = await Counter.findOneAndUpdate(
-  { name: counterName },
-  { $inc: { seq: 1 } },
-  { new: true, upsert: true }
-);
+let counter = await Counter.findOne({ name: counterName });
+
+// 🔥 If counter does not exist → initialize from existing bills
+if (!counter) {
+  const existingBillsCount = await Bill.countDocuments({
+    createdAt: {
+      $gte: new Date(fyStartYear, 3, 1), // April 1
+      $lte: new Date(),
+    },
+  });
+
+  counter = await Counter.create({
+    name: counterName,
+    seq: existingBillsCount,
+  });
+}
+
+// Increment counter
+counter.seq += 1;
+await counter.save();
 
 // 5-digit number
 const billNumber = String(counter.seq).padStart(5, "0");
