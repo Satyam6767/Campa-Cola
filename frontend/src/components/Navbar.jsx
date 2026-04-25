@@ -64,7 +64,7 @@ const Navbar = () => {
               <MenuIcon />
             </IconButton>
 
-            <Box sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+            <Box className="navbar-logo-img" sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
               <img
                 src="/final-logo.jpeg"
                 alt="Logo"

@@ -156,13 +156,13 @@ const InvoiceLayout = ({ bill }) => {
           )}
 
           {bill.customerMobile && (
-            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
               <b>Mobile:</b> {bill.customerMobile}
             </Typography>
           )}
 
           {bill.customerAddress && (
-            <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
+            <Typography sx={{ fontSize: 20.5, fontWeight: 600 }}>
               <b>Address:</b> {bill.customerAddress}
             </Typography>
           )}

@@ -89,3 +89,9 @@
   }
 
 }
+
+@media (max-width:425px) {
+  .navbar-logo-img{
+    display: none;
+  }
+}
