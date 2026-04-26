@@ -7,7 +7,10 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback",
+
+      // IMPORTANT: use full deployed backend callback URL
+      callbackURL:
+        "https://campa-cola-1.onrender.com/auth/google/callback",
     },
 
     async (accessToken, refreshToken, profile, done) => {
@@ -51,3 +54,5 @@ passport.deserializeUser(async (id, done) => {
     done(error, null);
   }
 });
+
+module.exports = passport;
