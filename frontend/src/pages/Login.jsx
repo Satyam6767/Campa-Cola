@@ -25,9 +25,13 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Normal Email Login
   const handleLogin = async () => {
     try {
-      const { data } = await API.post("/auth/login", { email, password });
+      const { data } = await API.post("/auth/login", {
+        email,
+        password,
+      });
 
       loginUser(data.token, data.role);
 
@@ -41,6 +45,22 @@ const Login = () => {
     } catch (error) {
       toast.error("Invalid credentials!");
     }
+  };
+
+  // Google Login
+  const handleGoogleLogin = () => {
+    window.location.href =
+      "https://yourbackenddomain.com/auth/google";
+  };
+
+  // Facebook Login (future)
+  const handleFacebookLogin = () => {
+    toast.info("Facebook Login Coming Soon");
+  };
+
+  // Twitter Login (future)
+  const handleTwitterLogin = () => {
+    toast.info("Twitter Login Coming Soon");
   };
 
   return (
@@ -62,6 +82,7 @@ const Login = () => {
             <Button
               className="social-btn facebook"
               startIcon={<FacebookIcon />}
+              onClick={handleFacebookLogin}
             >
               Sign in with Facebook
             </Button>
@@ -69,6 +90,7 @@ const Login = () => {
             <Button
               className="social-btn twitter"
               startIcon={<TwitterIcon />}
+              onClick={handleTwitterLogin}
             >
               Sign in with Twitter
             </Button>
@@ -76,6 +98,7 @@ const Login = () => {
             <Button
               className="social-btn google"
               startIcon={<GoogleIcon />}
+              onClick={handleGoogleLogin}
             >
               Sign in with Google
             </Button>
