@@ -50,7 +50,7 @@ const Login = () => {
   // Google Login
   const handleGoogleLogin = () => {
     window.location.href =
-      "https://yourbackenddomain.com/auth/google";
+      "https://campa-cola-1.onrender.com/auth/google";
   };
 
   // Facebook Login (future)
