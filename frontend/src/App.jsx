@@ -17,6 +17,7 @@ import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
 import Aboutus from "./pages/Aboutus";
 import MasterList from "./admin/MasterList";
+import LoginSuccess from "./pages/LoginSuccess";
 
 // Layout Components
 import Navbar from "./components/Navbar";
@@ -58,6 +59,10 @@ const App = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/about" element={<Aboutus />} />
         <Route path="/contact" element={<Contact />} />
+        <Route
+  path="/login-success"
+  element={<LoginSuccess />}
+/>
 
         {/* ================= ADMIN ROUTES ================= */}
         <Route
@@ -75,6 +80,7 @@ const App = () => {
           <Route path="billing" element={<Billing />} />
           <Route path="billing-history" element={<BillingHistory />} />
           <Route path="master-list" element={<MasterList />} />
+          
 
           {/* ✅ PRINT INVOICE */}
           <Route path="invoice/:id" element={<PrintInvoice />} />
