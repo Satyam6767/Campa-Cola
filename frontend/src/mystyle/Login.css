@@ -175,3 +175,122 @@
     transform:translateX(0);
   }
 }
+
+
+
+
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .login-card {
+    max-width: 90%;
+    flex-direction: column-reverse;
+  }
+
+  .login-left,
+  .login-right {
+    width: 100%;
+    padding: 35px 30px;
+  }
+
+  .login-logo img {
+    width: 170px;
+  }
+
+  .login-title {
+    font-size: 20px !important;
+    text-align: center;
+  }
+
+  .login-desc {
+    text-align: center;
+  }
+
+  .social-btn {
+    width: 100%;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+
+/* Mobile */
+@media (max-width: 576px) {
+  .login-section {
+    padding: 20px 10px;
+    min-height: auto;
+  }
+
+  .login-card {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .login-left,
+  .login-right {
+    padding: 25px 20px;
+  }
+
+  .login-logo img {
+    width: 140px;
+  }
+
+  .login-title {
+    font-size: 18px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .login-desc {
+    font-size: 14px !important;
+    line-height: 1.5;
+  }
+
+  .social-btn {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+
+  .login-btn {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .forgot {
+    font-size: 14px;
+  }
+
+  .register-link {
+    font-size: 14px;
+  }
+}
+
+
+/* Large Laptop */
+@media (min-width: 1200px) {
+  .login-card {
+    max-width: 900px;
+  }
+
+  .login-left,
+  .login-right {
+    padding: 50px;
+  }
+
+  .login-logo img {
+    width: 220px;
+  }
+}
