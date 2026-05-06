@@ -70,6 +70,24 @@ router.get("/", auth(["admin"]), async (req, res) => {
       revenue: salesMap[date],
     }));
 
+    /* ── MONTHLY SALES (current year) ── */
+    const currentYear = now.getFullYear();
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const monthlyMap = {};
+
+    monthNames.forEach((m, i) => {
+      monthlyMap[i] = { month: m, revenue: 0 };
+    });
+
+    bills.forEach(b => {
+      const d = new Date(b.createdAt);
+      if (d.getFullYear() === currentYear) {
+        monthlyMap[d.getMonth()].revenue += b.totalAmount;
+      }
+    });
+
+    const monthlySales = Object.values(monthlyMap);
+
     /* ── PRODUCTS ── */
     const products = await Product.find().lean();
     const totalProducts = products.length;
@@ -153,6 +171,9 @@ router.get("/", auth(["admin"]), async (req, res) => {
 
       // Graph
       salesGraph,
+
+      // Monthly Sales
+      monthlySales,
 
       // Top products
       topProducts,

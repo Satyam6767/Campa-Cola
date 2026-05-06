@@ -14,7 +14,8 @@ import {
   Category, ListAlt, People, EmojiEvents,
 } from "@mui/icons-material";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
+  LineChart, Line, BarChart, Bar, Cell,
+  XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from "recharts";
 
@@ -142,6 +143,16 @@ const AdminDashboard = () => {
 
   const maxQty = data.topProducts?.[0]?.totalQty || 1;
 
+  const currentMonth = new Date().getMonth();
+
+  const monthlySummary = () => {
+    const filled = (data.monthlySales || []).filter(m => m.revenue > 0);
+    const best = filled.length ? filled.reduce((a, b) => b.revenue > a.revenue ? b : a) : null;
+    const avg = filled.length ? Math.round(filled.reduce((s, m) => s + m.revenue, 0) / filled.length) : 0;
+    const ytd = filled.reduce((s, m) => s + m.revenue, 0);
+    return { best, avg, ytd };
+  };
+
   return (
     <Box sx={{ p: { xs: 1.5, sm: 2, md: 3 }, bgcolor: LIGHT, minHeight: "100vh" }}>
 
@@ -238,7 +249,7 @@ const AdminDashboard = () => {
         </Box>
       </Paper>
 
-      {/* ── SALES GRAPH ── */}
+      {/* ── SALES GRAPH (last 7 days) ── */}
       <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
           <TrendingUp sx={{ color: RED, fontSize: { xs: 18, md: 20 } }} />
@@ -274,6 +285,77 @@ const AdminDashboard = () => {
               activeDot={{ r: 5 }}
             />
           </LineChart>
+        </ResponsiveContainer>
+      </Paper>
+
+      {/* ── MONTHLY REVENUE ── */}
+      <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, mb: { xs: 1.5, md: 2 }, bgcolor: "#fff" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <TrendingUp sx={{ color: RED, fontSize: { xs: 18, md: 20 } }} />
+          <Typography sx={{ fontWeight: 700, color: BLUE, fontSize: { xs: 13, md: 15 } }}>
+            Monthly Revenue
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12, ml: 0.5 }}>
+            ({new Date().getFullYear()})
+          </Typography>
+        </Box>
+
+        {/* Summary Cards */}
+        {(() => {
+          const { best, avg, ytd } = monthlySummary();
+          return (
+            <Grid container spacing={1.5} sx={{ mb: 2 }}>
+              {[
+                { label: "Best Month", value: best ? `${best.month}: ₹${best.revenue.toLocaleString()}` : "—" },
+                { label: "Avg / Month", value: `₹${avg.toLocaleString()}` },
+                { label: "YTD Total",   value: `₹${ytd.toLocaleString()}` },
+              ].map(s => (
+                <Grid item xs={4} key={s.label}>
+                  <Box sx={{
+                    bgcolor: LIGHT, borderRadius: 2,
+                    p: { xs: 1, md: 1.5 }, textAlign: "center",
+                  }}>
+                    <Typography sx={{ fontSize: { xs: 10, md: 12 }, color: "text.secondary", mb: 0.3 }}>
+                      {s.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: { xs: 11, md: 13 }, fontWeight: 700, color: BLUE }}>
+                      {s.value}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          );
+        })()}
+
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={data.monthlySales || []} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11, fill: "#888" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#888" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              formatter={(v) => [`₹${v.toLocaleString()}`, "Revenue"]}
+              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 12 }}
+            />
+            <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
+              {(data.monthlySales || []).map((entry, index) => (
+                <Cell
+                  key={index}
+                  fill={index === currentMonth ? BLUE : RED}
+                />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </Paper>
 
