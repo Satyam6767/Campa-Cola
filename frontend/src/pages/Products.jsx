@@ -51,7 +51,9 @@ const Products = ({ limit, showViewMore }) => {
         </Box>
 
         {loading ? (
-          <Typography align="center">Loading products...</Typography>
+          <Typography align="center">
+            Loading products...
+          </Typography>
         ) : (
           <>
             <Box
@@ -59,38 +61,49 @@ const Products = ({ limit, showViewMore }) => {
                 limit ? "home-grid" : "full-grid"
               }`}
             >
-              {products.map((product) => (
-                <Card className="product-card" key={product._id}>
-                  <CardMedia
-                    component="img"
-                    image={product.image}
-                    alt={product.title}
-                    className="product-image"
-                    loading="lazy"
-                  />
+              {products
+                .filter((product) => {
+                  const title = product.title.toLowerCase();
 
-                  <CardContent className="product-content">
-                    <Typography className="product-name">
-                      {product.title}
-                    </Typography>
+                  return (
+                    title.includes("campa") ||
+                    title.includes("raskik") ||
+                    title.includes("sun crush") ||
+                    title.includes("independence")
+                  );
+                })
+                .map((product) => (
+                  <Card className="product-card" key={product._id}>
+                    <CardMedia
+                      component="img"
+                      image={product.image}
+                      alt={product.title}
+                      className="product-image"
+                      loading="lazy"
+                    />
 
-                    <Typography className="product-price">
-                      ₹{product.price}
-                    </Typography>
+                    <CardContent className="product-content">
+                      <Typography className="product-name">
+                        {product.title}
+                      </Typography>
 
-                    {token && role === "user" && (
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        className="add-to-cart-btn"
-                        onClick={() => addToCart(product)}
-                      >
-                        Add to Cart
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      <Typography className="product-price">
+                        ₹{product.price}
+                      </Typography>
+
+                      {token && role === "user" && (
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          className="add-to-cart-btn"
+                          onClick={() => addToCart(product)}
+                        >
+                          Add to Cart
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
             </Box>
 
             {showViewMore && (
