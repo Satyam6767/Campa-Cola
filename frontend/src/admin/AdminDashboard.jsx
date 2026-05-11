@@ -509,6 +509,179 @@ const AdminDashboard = () => {
         </Paper>
       )}
 
+
+            {/* ── APRIL PRODUCT SALES ── */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2, md: 2.5 },
+          borderRadius: 3,
+          mb: { xs: 1.5, md: 2 },
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 2,
+          }}
+        >
+          <TrendingUp
+            sx={{
+              color: RED,
+              fontSize: { xs: 18, md: 20 },
+            }}
+          />
+
+          <Typography
+            sx={{
+              fontWeight: 700,
+              color: BLUE,
+              fontSize: { xs: 13, md: 15 },
+            }}
+          >
+            April Product Sales
+          </Typography>
+        </Box>
+
+        {data.aprilProductSales?.length === 0 ? (
+          <Typography color="text.secondary" fontSize={13}>
+            No April sales found
+          </Typography>
+        ) : (
+          <Box sx={{ overflowX: "auto" }}>
+            <Table
+              size="small"
+              sx={{
+                minWidth: { xs: 650, md: "100%" },
+              }}
+            >
+              <TableHead>
+                <TableRow sx={{ bgcolor: "#f8f9fa" }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      color: BLUE,
+                      fontSize: 12,
+                      border: "none",
+                    }}
+                  >
+                    Product
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      color: BLUE,
+                      fontSize: 12,
+                      border: "none",
+                    }}
+                  >
+                    Units Sold
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      color: BLUE,
+                      fontSize: 12,
+                      border: "none",
+                    }}
+                  >
+                    Price
+                  </TableCell>
+
+                  <TableCell
+                    sx={{
+                      fontWeight: 700,
+                      color: BLUE,
+                      fontSize: 12,
+                      border: "none",
+                    }}
+                  >
+                    Weight
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {data.aprilProductSales?.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    hover
+                    sx={{
+                      "& td": {
+                        border: "none",
+                        fontSize: { xs: 12, md: 13 },
+                      },
+                    }}
+                  >
+                    <TableCell>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <Avatar
+                          src={p.image}
+                          variant="rounded"
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            bgcolor: "#f0f0f0",
+                          }}
+                        >
+                          {p.title?.charAt(0)}
+                        </Avatar>
+
+                        <Typography
+                          fontSize={{ xs: 12, md: 13 }}
+                          fontWeight={600}
+                          color={BLUE}
+                        >
+                          {p.title}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography
+                        fontWeight={700}
+                        color={RED}
+                      >
+                        {p.totalUnits}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ₹{p.price}
+                    </TableCell>
+
+                    <TableCell
+                      sx={{
+                        color: "#666",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {p.weight || "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+        )}
+      </Paper>
+
       {/* ── RECENT BILLS ── */}
       <Paper elevation={0} sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 3, bgcolor: "#fff" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
