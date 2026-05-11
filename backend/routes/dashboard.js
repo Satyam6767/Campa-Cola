@@ -198,48 +198,53 @@ router.get("/", auth(["admin"]), async (req, res) => {
       .slice(0, 5);
 
     /* ── APRIL PRODUCT SALES ── */
-    const aprilProductMap = {};
+/* ── APRIL PRODUCT SALES ── */
+const aprilProductMap = {};
 
-    const aprilBills = bills.filter((bill) => {
-      const d = new Date(bill.createdAt);
+const aprilBills = bills.filter((bill) => {
+  const d = new Date(bill.createdAt);
 
-      return (
-        d.getMonth() === 3 &&
-        d.getFullYear() === currentYear
-      );
-    });
+  return (
+    d.getMonth() === 3 &&
+    d.getFullYear() === currentYear
+  );
+});
 
-    aprilBills.forEach((bill) => {
-      bill.items.forEach((item) => {
-        const id = item.productId?._id?.toString();
+aprilBills.forEach((bill) => {
+  bill.items.forEach((item) => {
+    const id = item.productId?._id?.toString();
 
-        if (!id) return;
+    if (!id) return;
 
-        const title = item.productId?.title || "Unknown";
+    const title = item.productId?.title || "Unknown";
 
-        const image = item.productId?.image || "";
+    const image = item.productId?.image || "";
 
-        const weight = item.productId?.weight || "";
+    const weight = item.productId?.weight || "";
 
-        const price = item.price || 0;
+    const price = item.price || 0;
 
-        if (!aprilProductMap[id]) {
-          aprilProductMap[id] = {
-            id,
-            title,
-            image,
-            weight,
-            price,
-            totalUnits: 0,
-          };
-        }
+    if (!aprilProductMap[id]) {
+      aprilProductMap[id] = {
+        id,
+        title,
+        image,
+        weight,
+        price,
+        totalUnits: 0,
+        totalSales: 0,
+      };
+    }
 
-        aprilProductMap[id].totalUnits += item.quantity;
-      });
-    });
+    aprilProductMap[id].totalUnits += item.quantity;
 
-    const aprilProductSales = Object.values(aprilProductMap)
-      .sort((a, b) => b.totalUnits - a.totalUnits);
+    aprilProductMap[id].totalSales +=
+      (item.price || 0) * item.quantity;
+  });
+});
+
+const aprilProductSales = Object.values(aprilProductMap)
+  .sort((a, b) => b.totalSales - a.totalSales);
 
     /* ── TOP CUSTOMERS ── */
     const customerMap = {};
