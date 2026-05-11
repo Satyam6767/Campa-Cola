@@ -658,13 +658,14 @@ const AdminDashboard = () => {
                     </TableCell>
 
                     <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      ₹{p.price}
-                    </TableCell>
+  sx={{
+    fontWeight: 700,
+    color: "#2e7d32",
+    whiteSpace: "nowrap",
+  }}
+>
+  ₹{(p.totalSales || 0).toLocaleString()}
+</TableCell>
 
                     <TableCell
                       sx={{
