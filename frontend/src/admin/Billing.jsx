@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import { Autocomplete } from "@mui/material";
 
 const Billing = () => {
   const { token } = useContext(AuthContext);
@@ -55,6 +56,9 @@ const Billing = () => {
   const [paymentStatus, setPaymentStatus] = useState("Unpaid");
   const [paidType, setPaidType] = useState("full");
   const [paidAmount, setPaidAmount] = useState(0);
+
+
+  const [customerSuggestions, setCustomerSuggestions] = useState([]);
 
   // FETCH PRODUCTS
   useEffect(() => {
@@ -296,6 +300,31 @@ const Billing = () => {
     }
   };
 
+
+  const searchCustomer = async (value) => {
+  try {
+
+    if (!value.trim()) {
+      setCustomerSuggestions([]);
+      return;
+    }
+
+    const { data } = await API.get(
+      `/customers/search?q=${value}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setCustomerSuggestions(data);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
 
@@ -351,14 +380,36 @@ const Billing = () => {
           Customer Details (Optional)
         </Typography>
 
-        <TextField
-          label="Customer Name"
-          size="small"
-          fullWidth
-          sx={{ mb: 1 }}
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-        />
+        <Autocomplete
+  freeSolo
+  options={customerSuggestions}
+  getOptionLabel={(option) =>
+    typeof option === "string"
+      ? option
+      : option.name
+  }
+  onInputChange={(event, value) => {
+    setCustomerName(value);
+    searchCustomer(value);
+  }}
+  onChange={(event, selected) => {
+
+    if (!selected) return;
+
+    setCustomerName(selected.name);
+    setCustomerMobile(selected.phone);
+    setCustomerAddress(selected.address || "");
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="Customer Name"
+      size="small"
+      fullWidth
+      sx={{ mb: 1 }}
+    />
+  )}
+/>
 
         <TextField
           label="Mobile"

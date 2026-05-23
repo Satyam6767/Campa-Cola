@@ -31,6 +31,48 @@ router.post("/", auth(["admin"]), async (req, res) => {
   }
 });
 
+
+/* ======================================================
+   SEARCH CUSTOMERS FOR AUTOCOMPLETE
+====================================================== */
+router.get("/search", auth(["admin"]), async (req, res) => {
+  try {
+    const search = req.query.q?.trim() || "";
+
+    if (!search) {
+      return res.json([]);
+    }
+
+    const customers = await Customer.find({
+      $or: [
+        {
+          name: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          phone: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      ],
+    })
+      .limit(10)
+      .lean();
+
+    res.json(customers);
+
+  } catch (error) {
+    console.error("SEARCH CUSTOMER ERROR:", error);
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+});
+
+
 /* ======================================================
    GET ALL CUSTOMERS (with search + pagination)
 ====================================================== */
