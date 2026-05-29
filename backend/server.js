@@ -26,9 +26,10 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "https://www.jankienterprisespupri.com",
-    ],
+  "http://localhost:5173",
+  "https://www.jankienterprisespupri.com",
+  "https://jankienterprisespupri.com",
+],
     credentials: true,
   })
 );
