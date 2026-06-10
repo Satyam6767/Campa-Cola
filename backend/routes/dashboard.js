@@ -197,20 +197,19 @@ router.get("/", auth(["admin"]), async (req, res) => {
       .sort((a, b) => b.totalQty - a.totalQty)
       .slice(0, 5);
 
-    /* ── APRIL PRODUCT SALES ── */
-/* ── APRIL PRODUCT SALES ── */
-const aprilProductMap = {};
+/* ── MAY PRODUCT SALES ── */
+const mayProductMap = {};
 
-const aprilBills = bills.filter((bill) => {
+const mayBills = bills.filter((bill) => {
   const d = new Date(bill.createdAt);
 
   return (
-    d.getMonth() === 3 &&
+    d.getMonth() === 4 && // May = 4
     d.getFullYear() === currentYear
   );
 });
 
-aprilBills.forEach((bill) => {
+mayBills.forEach((bill) => {
   bill.items.forEach((item) => {
     const id = item.productId?._id?.toString();
 
@@ -224,8 +223,8 @@ aprilBills.forEach((bill) => {
 
     const price = item.price || 0;
 
-    if (!aprilProductMap[id]) {
-      aprilProductMap[id] = {
+    if (!mayProductMap[id]) {
+      mayProductMap[id] = {
         id,
         title,
         image,
@@ -236,14 +235,14 @@ aprilBills.forEach((bill) => {
       };
     }
 
-    aprilProductMap[id].totalUnits += item.quantity;
+    mayProductMap[id].totalUnits += item.quantity;
 
-    aprilProductMap[id].totalSales +=
+    mayProductMap[id].totalSales +=
       (item.price || 0) * item.quantity;
   });
 });
 
-const aprilProductSales = Object.values(aprilProductMap)
+const aprilProductSales = Object.values(mayProductMap)
   .sort((a, b) => b.totalSales - a.totalSales);
 
     /* ── TOP CUSTOMERS ── */

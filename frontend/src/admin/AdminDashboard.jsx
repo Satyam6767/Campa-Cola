@@ -510,7 +510,7 @@ const AdminDashboard = () => {
       )}
 
 
-            {/* ── APRIL PRODUCT SALES ── */}
+            {/* ── MAY PRODUCT SALES ── */}
       <Paper
         elevation={0}
         sx={{
@@ -542,13 +542,13 @@ const AdminDashboard = () => {
               fontSize: { xs: 13, md: 15 },
             }}
           >
-            April Product Sales
+            May Product Sales
           </Typography>
         </Box>
 
-        {data.aprilProductSales?.length === 0 ? (
+        {data.mayProductSales?.length === 0 ? (
           <Typography color="text.secondary" fontSize={13}>
-            No April sales found
+            No May sales found
           </Typography>
         ) : (
           <Box sx={{ overflowX: "auto" }}>
@@ -607,7 +607,7 @@ const AdminDashboard = () => {
               </TableHead>
 
               <TableBody>
-                {data.aprilProductSales?.map((p) => (
+                {data.mayProductSales?.map((p) => (
                   <TableRow
                     key={p.id}
                     hover
