@@ -242,7 +242,7 @@ mayBills.forEach((bill) => {
   });
 });
 
-const aprilProductSales = Object.values(mayProductMap)
+const mayProductSales = Object.values(mayProductMap)
   .sort((a, b) => b.totalSales - a.totalSales);
 
     /* ── TOP CUSTOMERS ── */
@@ -302,8 +302,8 @@ const aprilProductSales = Object.values(mayProductMap)
       // Top products
       topProducts,
 
-      // April Product Sales
-      aprilProductSales,
+      // may Product Sales
+      mayProductSales,
 
       // Recent bills
       recentBills,
