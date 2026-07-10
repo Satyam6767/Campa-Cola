@@ -510,7 +510,7 @@ const AdminDashboard = () => {
       )}
 
 
-            {/* ── MAY PRODUCT SALES ── */}
+            {/* ── June PRODUCT SALES ── */}
       <Paper
         elevation={0}
         sx={{
@@ -542,13 +542,13 @@ const AdminDashboard = () => {
               fontSize: { xs: 13, md: 15 },
             }}
           >
-            May Product Sales
+            June Product Sales
           </Typography>
         </Box>
 
-        {data.mayProductSales?.length === 0 ? (
+        {data.juneProductSales?.length === 0 ? (
           <Typography color="text.secondary" fontSize={13}>
-            No May sales found
+            No june sales found
           </Typography>
         ) : (
           <Box sx={{ overflowX: "auto" }}>
