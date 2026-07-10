@@ -204,7 +204,7 @@ const mayBills = bills.filter((bill) => {
   const d = new Date(bill.createdAt);
 
   return (
-    d.getMonth() === 4 && // May = 4
+    d.getMonth() === 5 && // May = 4
     d.getFullYear() === currentYear
   );
 });
