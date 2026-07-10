@@ -607,7 +607,7 @@ const AdminDashboard = () => {
               </TableHead>
 
               <TableBody>
-                {data.mayProductSales?.map((p) => (
+                {data.juneProductSales?.map((p) => (
                   <TableRow
                     key={p.id}
                     hover
