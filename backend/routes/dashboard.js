@@ -197,19 +197,19 @@ router.get("/", auth(["admin"]), async (req, res) => {
       .sort((a, b) => b.totalQty - a.totalQty)
       .slice(0, 5);
 
-/* ── june PRODUCT SALES ── */
-const juneProductMap = {};
+/* ── july PRODUCT SALES ── */
+const julyProductMap = {};
 
-const juneBills = bills.filter((bill) => {
+const julyBills = bills.filter((bill) => {
   const d = new Date(bill.createdAt);
 
   return (
-    d.getMonth() === 5 && // june = 5
+    d.getMonth() === 6 && // juy = 6
     d.getFullYear() === currentYear
   );
 });
 
-juneBills.forEach((bill) => {
+julyBills.forEach((bill) => {
   bill.items.forEach((item) => {
     const id = item.productId?._id?.toString();
 
@@ -223,8 +223,8 @@ juneBills.forEach((bill) => {
 
     const price = item.price || 0;
 
-    if (!juneProductMap[id]) {
-      juneProductMap[id] = {
+    if (!julyProductMap[id]) {
+      julyProductMap[id] = {
         id,
         title,
         image,
@@ -235,14 +235,14 @@ juneBills.forEach((bill) => {
       };
     }
 
-    juneProductMap[id].totalUnits += item.quantity;
+    julyProductMap[id].totalUnits += item.quantity;
 
-    juneProductMap[id].totalSales +=
+    julyProductMap[id].totalSales +=
       (item.price || 0) * item.quantity;
   });
 });
 
-const juneProductSales = Object.values(juneProductMap)
+const julyProductSales = Object.values(julyProductMap)
   .sort((a, b) => b.totalSales - a.totalSales);
 
     /* ── TOP CUSTOMERS ── */
@@ -302,8 +302,8 @@ const juneProductSales = Object.values(juneProductMap)
       // Top products
       topProducts,
 
-      // june Product Sales
-      juneProductSales,
+      // july Product Sales
+      julyProductSales,
 
       // Recent bills
       recentBills,
